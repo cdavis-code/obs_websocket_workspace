@@ -10,7 +10,7 @@ class ObsMcp < Formula
   license "MIT"
 
   url "https://github.com/cdavis-code/obs_websocket_workspace/archive/refs/tags/v5.7.1+3.tar.gz"
-  sha256 "REPLACE_WITH_SHA256"
+  sha256 "3a98c876628169633b7a1857ad499cf4ebab360b8b6cbce6c4845d84d95738db"
 
   # Development / HEAD install: brew install --head obs-mcp
   head "https://github.com/cdavis-code/obs_websocket_workspace.git", branch: "main"

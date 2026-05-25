@@ -19,20 +19,25 @@ A standalone MCP (Model Context Protocol) server for controlling OBS Studio via 
 
 ## Table of Contents
 
-- [What's New in v5.7.0](#whats-new-in-v570)
-- [Quick Start](#quick-start)
-- [MCP Host Configuration](#mcp-host-configuration)
-  - [Qoder](#qoder)
-  - [Claude Desktop](#claude-desktop)
-  - [VS Code](#vs-code)
-  - [OpenCode](#opencode)
-- [Code Mode](#code-mode)
-- [Features](#features)
-- [AI Agent Skill](#ai-agent-skill)
-- [Configuration](#configuration)
-- [Development Setup](#development-setup)
-- [Testing with MCP Inspector](#testing-with-mcp-inspector)
-- [License](#license)
+- [obs\_mcp](#obs_mcp)
+  - [Table of Contents](#table-of-contents)
+  - [What's New in v5.7.0](#whats-new-in-v570)
+  - [Quick Start](#quick-start)
+    - [Option 1: Global Activation (Recommended for End-Users)](#option-1-global-activation-recommended-for-end-users)
+    - [Option 2: Homebrew (macOS / Linux)](#option-2-homebrew-macos--linux)
+  - [Code Mode](#code-mode)
+    - [Why Code Mode?](#why-code-mode)
+  - [Features](#features)
+    - [What Can You Do?](#what-can-you-do)
+  - [AI Agent Skill](#ai-agent-skill)
+  - [Configuration](#configuration)
+  - [Development Setup](#development-setup)
+    - [Prerequisites](#prerequisites)
+    - [Running from Source](#running-from-source)
+    - [Code Generation](#code-generation)
+  - [Testing with MCP Inspector](#testing-with-mcp-inspector)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## What's New in v5.7.0
 
@@ -66,6 +71,24 @@ export OBS_WEBSOCKET_PASSWORD=your-password
 ```
 
 That's it! Configure your AI agent using one of the [MCP Host Configuration](#mcp-host-configuration) examples below, and the agent will launch the server automatically.
+
+### Option 2: Homebrew (macOS / Linux)
+
+If you use the [`brew`](https://brew.sh/) package manager, you can install a pre-built `obs-mcp` binary without needing the Dart SDK on your PATH:
+
+```sh
+brew tap cdavis-code/obs-websocket
+brew install obs-mcp
+```
+
+This installs the `obs-mcp` executable on your PATH. Set your connection details the same way as Option 1:
+
+```sh
+export OBS_WEBSOCKET_URL=ws://localhost:4455
+export OBS_WEBSOCKET_PASSWORD=your-password
+```
+
+Then point your MCP host at the `obs-mcp` command (instead of `obs_mcp`) in the [MCP Host Configuration](#mcp-host-configuration) examples below.
 
 ## Code Mode
 
