@@ -1,5 +1,5 @@
 name: obs_cli
-version: 5.7.0+1
+version: 5.7.0+2
 description: A CLI tool and MCP server for controlling OBS Studio via the obs-websocket protocol.
 homepage: https://github.com/cdavis-code/obs_websocket_workspace
 repository: https://github.com/cdavis-code/obs_websocket_workspace/tree/main/packages/obs_cli

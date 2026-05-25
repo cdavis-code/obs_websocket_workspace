@@ -3,7 +3,7 @@ import 'package:args/command_runner.dart';
 /// Display the package name and version
 class ObsVersionCommand extends Command<void> {
   static const packageName = 'obs_cli';
-  static const packageVersion = '5.2.3+2';
+  static const packageVersion = '5.7.0+2';
 
   @override
   String get description => 'Display the package name and version';

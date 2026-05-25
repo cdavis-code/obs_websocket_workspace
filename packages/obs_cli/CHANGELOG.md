@@ -1,5 +1,14 @@
 # Changelog
 
+## 5.7.0+2
+
+* **Bug Fixes**
+  * Fixed stale `packageVersion` constant in `obs version` command (was reporting `5.2.3+2`, now correctly reports `5.7.0+2`)
+
+* **CI/CD**
+  * Replaced deprecated `macos-13` GitHub Actions runner with `macos-15-intel` for Homebrew release workflow
+  * Removed bash line continuations from `dart compile` command for PowerShell compatibility on Windows runners
+
 ## 5.7.0+1
 
 * **Distribution**
