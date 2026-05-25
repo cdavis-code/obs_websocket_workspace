@@ -2,8 +2,8 @@ name: Build and Release Homebrew Binaries
 
 # Builds native binaries for all Dart-supported platforms and creates a GitHub
 # Release when a version tag is pushed. The GitHub Release triggers
-# chocolatey.yml (Chocolatey publish) and homebrew-formula-update.yaml runs in
-# parallel to update the Homebrew tap formula.
+# chocolatey.yml (Chocolatey publish) and homebrew-formula-update.yaml (which
+# runs on release publication to compute per-platform SHA256 checksums).
 
 on:
   push:

@@ -1,7 +1,8 @@
 name: Update Homebrew Formula
 
-# Computes SHA256 of the source tarball and updates the Homebrew formula in
-# cdavis-code/homebrew-obs-websocket on every version tag push.
+# Computes SHA256 checksums of all platform binaries from the GitHub Release and
+# updates the Homebrew formula in cdavis-code/homebrew-obs-websocket on every
+# release publication.
 #
 # Prerequisites:
 #   - The tap repo must exist: cdavis-code/homebrew-obs-websocket
@@ -9,9 +10,8 @@ name: Update Homebrew Formula
 #     (must have write access to cdavis-code/homebrew-obs-websocket)
 
 on:
-  push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+*'
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       tag:
@@ -30,8 +30,9 @@ jobs:
       - name: Determine tag
         id: vars
         run: |
-          TAG="${{ github.event.inputs.tag || github.ref_name }}"
-          # Strip refs/tags/ prefix if present
+          # From workflow_dispatch input or release event
+          TAG="${{ github.event.inputs.tag || github.event.release.tag_name }}"
+          # Strip refs/tags/ prefix if present (from dispatch)
           TAG="${TAG#refs/tags/}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
@@ -40,14 +41,39 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       # ── Compute SHA256 ──────────────────────────────────────────────
-      - name: Compute source tarball SHA256
+      - name: Compute binary SHA256 checksums
         id: sha
         run: |
-          TAR_URL="https://github.com/cdavis-code/obs_websocket_workspace/archive/refs/tags/${{ steps.vars.outputs.tag }}.tar.gz"
-          echo "Fetching tarball: $TAR_URL"
-          SHA=$(curl -fsSL "$TAR_URL" | shasum -a 256 | awk '{print $1}')
-          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
-          echo "Computed SHA256: $SHA"
+          TAG="${{ steps.vars.outputs.tag }}"
+          BASE_URL="https://github.com/cdavis-code/obs_websocket_workspace/releases/download/${TAG}"
+
+          # macOS ARM64
+          URL="${BASE_URL}/obs-cli-darwin-arm64"
+          echo "Fetching: $URL"
+          SHA=$(curl -fsSL "$URL" | shasum -a 256 | awk '{print $1}')
+          echo "sha256_darwin_arm64=$SHA" >> "$GITHUB_OUTPUT"
+          echo "  darwin-arm64 → $SHA"
+
+          # macOS AMD64
+          URL="${BASE_URL}/obs-cli-darwin-amd64"
+          echo "Fetching: $URL"
+          SHA=$(curl -fsSL "$URL" | shasum -a 256 | awk '{print $1}')
+          echo "sha256_darwin_amd64=$SHA" >> "$GITHUB_OUTPUT"
+          echo "  darwin-amd64 → $SHA"
+
+          # Linux ARM64
+          URL="${BASE_URL}/obs-cli-linux-arm64"
+          echo "Fetching: $URL"
+          SHA=$(curl -fsSL "$URL" | shasum -a 256 | awk '{print $1}')
+          echo "sha256_linux_arm64=$SHA" >> "$GITHUB_OUTPUT"
+          echo "  linux-arm64 → $SHA"
+
+          # Linux AMD64
+          URL="${BASE_URL}/obs-cli-linux-amd64"
+          echo "Fetching: $URL"
+          SHA=$(curl -fsSL "$URL" | shasum -a 256 | awk '{print $1}')
+          echo "sha256_linux_amd64=$SHA" >> "$GITHUB_OUTPUT"
+          echo "  linux-amd64 → $SHA"
 
       # ── Update formula ──────────────────────────────────────────────
       - name: Clone Homebrew tap repo
@@ -62,21 +88,17 @@ jobs:
           FORMULA="Formula/obs-cli.rb"
           VERSION="${{ steps.vars.outputs.version }}"
           TAG="${{ steps.vars.outputs.tag }}"
-          SHA="${{ steps.sha.outputs.sha256 }}"
 
-          echo "Updating $FORMULA"
-          echo "  version → $VERSION"
-          echo "  url     → https://github.com/cdavis-code/obs_websocket_workspace/archive/refs/tags/$TAG.tar.gz"
-          echo "  sha256  → $SHA"
+          echo "Updating $FORMULA to version $VERSION"
 
           # Update version line
           sed -i "s/^  version \".*\"/  version \"$VERSION\"/" "$FORMULA"
 
-          # Update url line
-          sed -i "s|^  url \".*\"|  url \"https://github.com/cdavis-code/obs_websocket_workspace/archive/refs/tags/$TAG.tar.gz\"|" "$FORMULA"
-
-          # Update sha256 line
-          sed -i "s/^  sha256 \".*\"/  sha256 \"$SHA\"/" "$FORMULA"
+          # Inject per-platform SHA256 placeholders
+          sed -i "s/ARM64_MACOS_SHA256/${{ steps.sha.outputs.sha256_darwin_arm64 }}/" "$FORMULA"
+          sed -i "s/AMD64_MACOS_SHA256/${{ steps.sha.outputs.sha256_darwin_amd64 }}/" "$FORMULA"
+          sed -i "s/ARM64_LINUX_SHA256/${{ steps.sha.outputs.sha256_linux_arm64 }}/" "$FORMULA"
+          sed -i "s/AMD64_LINUX_SHA256/${{ steps.sha.outputs.sha256_linux_amd64 }}/" "$FORMULA"
 
           # Show the updated formula for verification
           echo ""
