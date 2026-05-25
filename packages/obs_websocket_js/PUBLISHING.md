@@ -1,4 +1,4 @@
-# npm Publishing Setup for @unngh/obs-websocket-js
+# npm Publishing Setup for @unngh/obs-websocket
 
 ## What Was Done
 
@@ -99,9 +99,9 @@ When you push a tag like `obs_websocket_js-v5.8.0`:
 ## Verification
 
 After publishing, verify:
-- ✅ npm: https://www.npmjs.com/package/@unngh/obs-websocket-js
+- ✅ npm: https://www.npmjs.com/package/@unngh/obs-websocket
 - ✅ GitHub Actions: https://github.com/cdavis-code/obs_websocket_workspace/actions
-- ✅ Install test: `npm install @unngh/obs-websocket-js`
+- ✅ Install test: `npm install @unngh/obs-websocket`
 
 ## Troubleshooting
 

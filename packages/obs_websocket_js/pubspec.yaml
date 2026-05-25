@@ -1,6 +1,6 @@
 name: obs_websocket_js
 description: JavaScript/TypeScript bindings for obs_websocket, compiled via dart2js. Distributed as an npm package for browser and Node.js consumption.
-version: 5.7.0
+version: 5.7.0+3
 publish_to: none
 repository: https://github.com/cdavis-code/obs_websocket_workspace/tree/main/packages/obs_websocket_js
 
@@ -10,7 +10,7 @@ environment:
   sdk: ^3.8.0
 
 dependencies:
-  obs_websocket: ^5.7.0+1
+  obs_websocket: ^5.7.0+3
   loggy: ^2.0.3
   web: ^1.1.0
   web_socket_channel: ^3.0.2

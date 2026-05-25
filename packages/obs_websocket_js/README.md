@@ -6,7 +6,7 @@
 
 Built on the battle-tested [`obs_websocket`](https://pub.dev/packages/obs_websocket) Dart SDK, compiled to JavaScript via `dart2js`. Every request parsed and validated by the same codebase that powers the official Dart package, CLI tools, and MCP server.
 
-[![npm version](https://img.shields.io/npm/v/@unngh/obs-websocket-js.svg)](https://www.npmjs.com/package/@unngh/obs-websocket-js)
+[![npm version](https://img.shields.io/npm/v/@unngh/obs-websocket.svg)](https://www.npmjs.com/package/@unngh/obs-websocket)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
@@ -14,7 +14,7 @@ Built on the battle-tested [`obs_websocket`](https://pub.dev/packages/obs_websoc
 
 ## Why obs_websocket_js?
 
-| Feature | @unngh/obs-websocket-js | obs-websocket-js |
+| Feature | @unngh/obs-websocket | obs-websocket-js |
 |---------|------------------|------------------|
 | **Protocol Version** | OBS WebSocket v5.7.0 (latest) | v5.x |
 | **Type Safety** | Full TypeScript with strict types | TypeScript support |
@@ -49,15 +49,15 @@ Built on the battle-tested [`obs_websocket`](https://pub.dev/packages/obs_websoc
 ### Installation
 
 ```bash
-npm install @unngh/obs-websocket-js
+npm install @unngh/obs-websocket
 # or
-yarn add @unngh/obs-websocket-js
+yarn add @unngh/obs-websocket
 ```
 
 ### Basic Usage (Node.js / TypeScript)
 
 ```typescript
-import { ObsWebSocket, EventSubscription } from '@unngh/obs-websocket-js';
+import { ObsWebSocket, EventSubscription } from '@unngh/obs-websocket';
 
 // Connect to OBS
 const obs = await ObsWebSocket.connect('ws://localhost:4455', {
@@ -93,7 +93,7 @@ await obs.disconnect();
 Perfect for local development and CI/CD:
 
 ```typescript
-import { ObsWebSocket } from '@unngh/obs-websocket-js';
+import { ObsWebSocket } from '@unngh/obs-websocket';
 
 // Reads OBS_WEBSOCKET_URL, OBS_WEBSOCKET_PASSWORD, OBS_WEBSOCKET_TIMEOUT
 const obs = await ObsWebSocket.connectFromEnv();
@@ -112,7 +112,7 @@ OBS_WEBSOCKET_TIMEOUT=120
 ### Browser Usage
 
 ```typescript
-import { ObsWebSocket } from '@unngh/obs-websocket-js/browser';
+import { ObsWebSocket } from '@unngh/obs-websocket/browser';
 
 const obs = await ObsWebSocket.connect('ws://localhost:4455', {
   password: 'your_password',
@@ -131,10 +131,10 @@ This package supports both Node.js and browser environments. Use the appropriate
 
 | Import Path | Environment | WebSocket | Typical Use Case |
 |---|---|---|---|
-| `@unngh/obs-websocket-js` | **Node.js** (default) | Native (Node 22+) or `ws` polyfill (Node 18-21) | Streaming bots, automation scripts, server integrations, CLI tools |
-| `@unngh/obs-websocket-js/browser` | **Browser** | Native `WebSocket` | Web dashboards, browser extensions, OBS remote control UIs |
+| `@unngh/obs-websocket` | **Node.js** (default) | Native (Node 22+) or `ws` polyfill (Node 18-21) | Streaming bots, automation scripts, server integrations, CLI tools |
+| `@unngh/obs-websocket/browser` | **Browser** | Native `WebSocket` | Web dashboards, browser extensions, OBS remote control UIs |
 
-**When in doubt, use `@unngh/obs-websocket-js`** — Node.js is the primary use case for OBS WebSocket automation. Only use the `/browser` subpath if you're building a web application that runs directly in a browser.
+**When in doubt, use `@unngh/obs-websocket`** — Node.js is the primary use case for OBS WebSocket automation. Only use the `/browser` subpath if you're building a web application that runs directly in a browser.
 
 > **Browser caveat:** Connecting from a browser requires OBS to accept WebSocket connections from arbitrary origins. OBS does not send CORS headers by default, so you may need to run a local proxy or use a browser extension to bypass CORS restrictions.
 
@@ -235,7 +235,7 @@ const results = await obs.sendBatch([
 Typed event handling with EventEmitter3:
 
 ```typescript
-import { EventSubscription } from '@unngh/obs-websocket-js';
+import { EventSubscription } from '@unngh/obs-websocket';
 
 // Subscribe to event categories
 await obs.subscribe(EventSubscription.All);
@@ -268,9 +268,9 @@ The package provides dual entrypoints optimized for different environments:
 
 | Build | Import Path | WebSocket Implementation | Use Case |
 |-------|-------------|-------------------------|----------|
-| **Node.js (ESM)** | `@unngh/obs-websocket-js` *(default)* | Native (Node 22+) or `ws` polyfill (Node 18-21) | Server-side apps, CLI tools |
-| **Node.js (CommonJS)** | `require('@unngh/obs-websocket-js')` | Same as above | Legacy Node.js projects |
-| **Browser** | `@unngh/obs-websocket-js/browser` | Native `WebSocket` | Web apps, browser extensions |
+| **Node.js (ESM)** | `@unngh/obs-websocket` *(default)* | Native (Node 22+) or `ws` polyfill (Node 18-21) | Server-side apps, CLI tools |
+| **Node.js (CommonJS)** | `require('@unngh/obs-websocket')` | Same as above | Legacy Node.js projects |
+| **Browser** | `@unngh/obs-websocket/browser` | Native `WebSocket` | Web apps, browser extensions |
 
 ### Automatic WebSocket Selection
 
@@ -307,7 +307,7 @@ interface ConnectOptions {
 ### Complete Streaming Workflow
 
 ```typescript
-import { ObsWebSocket, EventSubscription } from '@unngh/obs-websocket-js';
+import { ObsWebSocket, EventSubscription } from '@unngh/obs-websocket';
 
 const obs = await ObsWebSocket.connectFromEnv();
 if (!obs) throw new Error('Set OBS_WEBSOCKET_URL in environment');
@@ -487,7 +487,7 @@ The workflow will:
 - ✅ Run all tests and type checks
 - ✅ Build the package
 - ✅ Publish to npm with public access
-- ✅ Available at `https://www.npmjs.com/package/@unngh/obs-websocket-js`
+- ✅ Available at `https://www.npmjs.com/package/@unngh/obs-websocket`
 
 **Note**: You need to set `NPM_TOKEN` as a GitHub secret for the workflow to authenticate with npm.
 
