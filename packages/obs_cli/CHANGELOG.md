@@ -1,6 +1,12 @@
 # Changelog
 
-## 5.7.0
+## 5.7.0+1
+
+* **Distribution**
+  * Added Homebrew formula and GitHub Actions workflows for native binary distribution (macOS, Linux, Windows)
+  * Added Chocolatey package for Windows distribution (`choco install obs-cli`)
+  * Added OIDC-based pub.dev publish workflow
+  * Fixed README installation instructions (dart pub activate and brew tap commands)
 
 * **Code Quality & Refactoring**
   * Split `obs_inputs_command.dart` (1203 lines) into 8 modular files for better maintainability

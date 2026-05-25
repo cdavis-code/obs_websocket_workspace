@@ -123,7 +123,7 @@ Install using `dart pub`:
 For more information about `dart` and how to install it, check out [dart.dev](https://dart.dev/get-dart) 
 
 ```sh
-dart pub global activate obs_websocket
+dart pub global activate obs_cli
 ```
 
 Install using `brew`:
@@ -131,7 +131,7 @@ Install using `brew`:
 For more information about the `brew` package manager and how to install it, check out [brew.sh](https://brew.sh/) 
 
 ```sh
-brew tap cdavis-code/obs-cli
+brew tap cdavis-code/obs-websocket
 brew install obs-cli
 ```
 
