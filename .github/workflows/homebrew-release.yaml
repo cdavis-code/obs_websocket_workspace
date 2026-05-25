@@ -60,9 +60,7 @@ jobs:
         run: dart pub get
 
       - name: Compile binary
-        run: |
-          dart compile exe packages/obs_cli/bin/obs.dart \
-            -o obs-cli-${{ matrix.target }}${{ matrix.binary-ext }}
+        run: dart compile exe packages/obs_cli/bin/obs.dart -o obs-cli-${{ matrix.target }}${{ matrix.binary-ext }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
