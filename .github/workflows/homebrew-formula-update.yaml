@@ -1,0 +1,105 @@
+name: Update Homebrew Formula
+
+# Computes SHA256 of the source tarball and updates the Homebrew formula in
+# cdavis-code/homebrew-obs-websocket on every version tag push.
+#
+# Prerequisites:
+#   - The tap repo must exist: cdavis-code/homebrew-obs-websocket
+#   - A GitHub PAT with repo scope must be stored as secret HOMEBREW_TAP_TOKEN
+#     (must have write access to cdavis-code/homebrew-obs-websocket)
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v5.7.0+1)'
+        required: true
+        type: string
+
+jobs:
+  update-formula:
+    name: Update Homebrew formula
+    runs-on: ubuntu-latest
+    env:
+      TAP_REPO: cdavis-code/homebrew-obs-websocket
+      TAP_OWNER: cdavis-code
+    steps:
+      - name: Determine tag
+        id: vars
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          # Strip refs/tags/ prefix if present
+          TAG="${TAG#refs/tags/}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+          # Version without leading 'v' for the formula's version field
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # ── Compute SHA256 ──────────────────────────────────────────────
+      - name: Compute source tarball SHA256
+        id: sha
+        run: |
+          TAR_URL="https://github.com/cdavis-code/obs_websocket_workspace/archive/refs/tags/${{ steps.vars.outputs.tag }}.tar.gz"
+          echo "Fetching tarball: $TAR_URL"
+          SHA=$(curl -fsSL "$TAR_URL" | shasum -a 256 | awk '{print $1}')
+          echo "sha256=$SHA" >> "$GITHUB_OUTPUT"
+          echo "Computed SHA256: $SHA"
+
+      # ── Update formula ──────────────────────────────────────────────
+      - name: Clone Homebrew tap repo
+        run: |
+          git clone \
+            "https://x-access-token:${{ secrets.HOMEBREW_TAP_TOKEN }}@github.com/${{ env.TAP_REPO }}.git" \
+            tap-repo
+
+      - name: Update formula content
+        working-directory: tap-repo
+        run: |
+          FORMULA="Formula/obs-cli.rb"
+          VERSION="${{ steps.vars.outputs.version }}"
+          TAG="${{ steps.vars.outputs.tag }}"
+          SHA="${{ steps.sha.outputs.sha256 }}"
+
+          echo "Updating $FORMULA"
+          echo "  version → $VERSION"
+          echo "  url     → https://github.com/cdavis-code/obs_websocket_workspace/archive/refs/tags/$TAG.tar.gz"
+          echo "  sha256  → $SHA"
+
+          # Update version line
+          sed -i "s/^  version \".*\"/  version \"$VERSION\"/" "$FORMULA"
+
+          # Update url line
+          sed -i "s|^  url \".*\"|  url \"https://github.com/cdavis-code/obs_websocket_workspace/archive/refs/tags/$TAG.tar.gz\"|" "$FORMULA"
+
+          # Update sha256 line
+          sed -i "s/^  sha256 \".*\"/  sha256 \"$SHA\"/" "$FORMULA"
+
+          # Show the updated formula for verification
+          echo ""
+          echo "--- Updated formula ($FORMULA) ---"
+          cat "$FORMULA"
+
+      - name: Commit and push formula
+        working-directory: tap-repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/obs-cli.rb
+          git commit -m "obs-cli ${{ steps.vars.outputs.tag }}"
+          git push origin main
+
+      # ── Verify ──────────────────────────────────────────────────────
+      - name: Validate formula syntax
+        working-directory: tap-repo
+        run: |
+          if command -v brew &> /dev/null; then
+            brew audit --strict Formula/obs-cli.rb || echo "::warning::brew audit found issues"
+          else
+            echo "::notice::Homebrew not available on this runner — skipping brew audit"
+            # Basic Ruby syntax check as fallback
+            ruby -c Formula/obs-cli.rb
+          fi

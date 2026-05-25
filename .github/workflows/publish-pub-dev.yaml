@@ -1,0 +1,22 @@
+name: Publish to pub.dev
+
+# Publishes obs_cli to pub.dev when a version tag is pushed.
+# Uses OIDC authentication — no token secrets required.
+# Runs in parallel with homebrew-release.yaml and homebrew-formula-update.yaml.
+#
+# Prerequisites on pub.dev:
+#   - Enable "Publishing from push events (tags)" at https://pub.dev/packages/obs_cli/admin
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+  workflow_dispatch:
+
+jobs:
+  publish:
+    permissions:
+      id-token: write # Required for OIDC authentication with pub.dev
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    with:
+      working-directory: packages/obs_cli
