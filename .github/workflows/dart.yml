@@ -11,6 +11,7 @@ on:
     tags:
       - 'obs_websocket_js-v*'
       - 'obs_mcp_js-v*'
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
   pull_request:
     branches: [main]
 
