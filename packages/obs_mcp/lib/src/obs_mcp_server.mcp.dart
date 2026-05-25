@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
+import 'dart:math' as math;
 
 import 'package:dart_mcp/server.dart';
 import 'package:dart_mcp/stdio.dart';
@@ -63,7 +64,21 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     );
   }
 
-  FutureOr<CallToolResult> _obs_connect(CallToolRequest request) async {
+  /// Guards against duplicate initialization requests (e.g. from MCP Inspector
+  /// which may send `initialize` more than once for HTTP endpoints).
+  bool _isInitialized = false;
+  InitializeResult? _initializeResult;
+
+  @override
+  FutureOr<InitializeResult> initialize(InitializeRequest request) async {
+    if (_isInitialized) return _initializeResult!;
+    _isInitialized = true;
+    final result = await super.initialize(request);
+    _initializeResult = result;
+    return result;
+  }
+
+  FutureOr<CallToolResult> _obsConnect(CallToolRequest request) async {
     try {
       final url = request.arguments!['url'] as String;
       final password = request.arguments?['password'] as String?;
@@ -94,7 +109,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_disconnect(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsDisconnect(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().disconnect();
       return CallToolResult(
@@ -115,7 +130,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_is_connected(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsIsConnected(CallToolRequest request) async {
     try {
       final result = obs_mcp_server.ObsMcpServer().isConnected();
       return CallToolResult(
@@ -136,10 +151,10 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_send_raw(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsSendRaw(CallToolRequest request) async {
     try {
       final requestType = request.arguments!['requestType'] as String;
-      final requestData = request.arguments?['requestData'] as dynamic?;
+      final requestData = request.arguments?['requestData'] as dynamic;
 
       final result = await obs_mcp_server.ObsMcpServer().sendRaw(
         requestType: requestType,
@@ -163,7 +178,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_general_version(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsGeneralVersion(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().generalVersion();
       return CallToolResult(
@@ -184,7 +199,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_general_stats(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsGeneralStats(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().generalStats();
       return CallToolResult(
@@ -205,7 +220,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_general_hotkeys(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsGeneralHotkeys(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().generalHotkeys();
       return CallToolResult(
@@ -226,7 +241,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_general_trigger_hotkey(
+  FutureOr<CallToolResult> _obsGeneralTriggerHotkey(
     CallToolRequest request,
   ) async {
     try {
@@ -253,7 +268,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_general_sleep(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsGeneralSleep(CallToolRequest request) async {
     try {
       final sleepMillis = request.arguments?['sleepMillis'] as int?;
       final sleepFrames = request.arguments?['sleepFrames'] as int?;
@@ -280,7 +295,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_general_broadcast_custom_event(
+  FutureOr<CallToolResult> _obsGeneralBroadcastCustomEvent(
     CallToolRequest request,
   ) async {
     try {
@@ -306,7 +321,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scenes_list(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsScenesList(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().scenesList();
       return CallToolResult(
@@ -327,9 +342,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scenes_group_list(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsScenesGroupList(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().scenesGroupList();
       return CallToolResult(
@@ -350,7 +363,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scenes_get_current_program(
+  FutureOr<CallToolResult> _obsScenesGetCurrentProgram(
     CallToolRequest request,
   ) async {
     try {
@@ -374,7 +387,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scenes_set_current_program(
+  FutureOr<CallToolResult> _obsScenesSetCurrentProgram(
     CallToolRequest request,
   ) async {
     try {
@@ -400,7 +413,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scenes_get_current_preview(
+  FutureOr<CallToolResult> _obsScenesGetCurrentPreview(
     CallToolRequest request,
   ) async {
     try {
@@ -424,7 +437,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scenes_set_current_preview(
+  FutureOr<CallToolResult> _obsScenesSetCurrentPreview(
     CallToolRequest request,
   ) async {
     try {
@@ -450,7 +463,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scenes_create(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsScenesCreate(CallToolRequest request) async {
     try {
       final sceneName = request.arguments!['sceneName'] as String;
 
@@ -475,9 +488,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_list(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsSceneItemsList(CallToolRequest request) async {
     try {
       final sceneName = request.arguments!['sceneName'] as String;
 
@@ -502,7 +513,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_group_list(
+  FutureOr<CallToolResult> _obsSceneItemsGroupList(
     CallToolRequest request,
   ) async {
     try {
@@ -529,9 +540,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_get_id(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsSceneItemsGetId(CallToolRequest request) async {
     try {
       final sceneName = request.arguments!['sceneName'] as String;
       final sourceName = request.arguments!['sourceName'] as String;
@@ -558,7 +567,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_get_enabled(
+  FutureOr<CallToolResult> _obsSceneItemsGetEnabled(
     CallToolRequest request,
   ) async {
     try {
@@ -587,7 +596,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_set_enabled(
+  FutureOr<CallToolResult> _obsSceneItemsSetEnabled(
     CallToolRequest request,
   ) async {
     try {
@@ -618,7 +627,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_get_locked(
+  FutureOr<CallToolResult> _obsSceneItemsGetLocked(
     CallToolRequest request,
   ) async {
     try {
@@ -647,7 +656,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_set_locked(
+  FutureOr<CallToolResult> _obsSceneItemsSetLocked(
     CallToolRequest request,
   ) async {
     try {
@@ -678,17 +687,17 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_set_transform(
+  FutureOr<CallToolResult> _obsSceneItemsSetTransform(
     CallToolRequest request,
   ) async {
     try {
       final sceneName = request.arguments!['sceneName'] as String;
       final sceneItemId = request.arguments!['sceneItemId'] as int;
-      final positionX = request.arguments?['positionX'] as dynamic?;
-      final positionY = request.arguments?['positionY'] as dynamic?;
-      final scaleX = request.arguments?['scaleX'] as dynamic?;
-      final scaleY = request.arguments?['scaleY'] as dynamic?;
-      final rotation = request.arguments?['rotation'] as dynamic?;
+      final positionX = request.arguments?['positionX'] as dynamic;
+      final positionY = request.arguments?['positionY'] as dynamic;
+      final scaleX = request.arguments?['scaleX'] as dynamic;
+      final scaleY = request.arguments?['scaleY'] as dynamic;
+      final rotation = request.arguments?['rotation'] as dynamic;
       final cropLeft = request.arguments?['cropLeft'] as int?;
       final cropTop = request.arguments?['cropTop'] as int?;
       final cropRight = request.arguments?['cropRight'] as int?;
@@ -696,8 +705,8 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
       final alignment = request.arguments?['alignment'] as int?;
       final boundsType = request.arguments?['boundsType'] as String?;
       final boundsAlignment = request.arguments?['boundsAlignment'] as int?;
-      final boundsWidth = request.arguments?['boundsWidth'] as dynamic?;
-      final boundsHeight = request.arguments?['boundsHeight'] as dynamic?;
+      final boundsWidth = request.arguments?['boundsWidth'] as dynamic;
+      final boundsHeight = request.arguments?['boundsHeight'] as dynamic;
 
       final result = await obs_mcp_server.ObsMcpServer().sceneItemsSetTransform(
         sceneName: sceneName,
@@ -735,7 +744,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_list(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsInputsList(CallToolRequest request) async {
     try {
       final inputKind = request.arguments?['inputKind'] as String?;
 
@@ -760,9 +769,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_kind_list(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsInputsKindList(CallToolRequest request) async {
     try {
       final unversioned = request.arguments?['unversioned'] as bool?;
 
@@ -787,7 +794,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_special(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsInputsSpecial(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().inputsSpecial();
       return CallToolResult(
@@ -808,7 +815,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_get_mute(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsInputsGetMute(CallToolRequest request) async {
     try {
       final inputName = request.arguments!['inputName'] as String;
 
@@ -833,7 +840,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_set_mute(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsInputsSetMute(CallToolRequest request) async {
     try {
       final inputName = request.arguments?['inputName'] as String?;
       final inputUuid = request.arguments?['inputUuid'] as String?;
@@ -862,9 +869,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_toggle_mute(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsInputsToggleMute(CallToolRequest request) async {
     try {
       final inputName = request.arguments?['inputName'] as String?;
       final inputUuid = request.arguments?['inputUuid'] as String?;
@@ -891,9 +896,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_get_volume(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsInputsGetVolume(CallToolRequest request) async {
     try {
       final inputName = request.arguments?['inputName'] as String?;
       final inputUuid = request.arguments?['inputUuid'] as String?;
@@ -920,7 +923,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_get_settings(
+  FutureOr<CallToolResult> _obsInputsGetSettings(
     CallToolRequest request,
   ) async {
     try {
@@ -949,7 +952,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_set_settings(
+  FutureOr<CallToolResult> _obsInputsSetSettings(
     CallToolRequest request,
   ) async {
     try {
@@ -982,7 +985,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_set_name(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsInputsSetName(CallToolRequest request) async {
     try {
       final inputName = request.arguments?['inputName'] as String?;
       final inputUuid = request.arguments?['inputUuid'] as String?;
@@ -1011,13 +1014,13 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_create(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsInputsCreate(CallToolRequest request) async {
     try {
       final sceneName = request.arguments?['sceneName'] as String?;
       final sceneUuid = request.arguments?['sceneUuid'] as String?;
       final inputName = request.arguments!['inputName'] as String;
       final inputKind = request.arguments!['inputKind'] as String;
-      final inputSettings = request.arguments?['inputSettings'] as dynamic?;
+      final inputSettings = request.arguments?['inputSettings'] as dynamic;
       final sceneItemEnabled = request.arguments?['sceneItemEnabled'] as bool?;
 
       final result = await obs_mcp_server.ObsMcpServer().inputsCreate(
@@ -1046,7 +1049,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_remove(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsInputsRemove(CallToolRequest request) async {
     try {
       final inputName = request.arguments?['inputName'] as String?;
       final inputUuid = request.arguments?['inputUuid'] as String?;
@@ -1073,7 +1076,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_stream_status(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsStreamStatus(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().streamStatus();
       return CallToolResult(
@@ -1094,7 +1097,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_stream_start(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsStreamStart(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().streamStart();
       return CallToolResult(
@@ -1115,7 +1118,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_stream_stop(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsStreamStop(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().streamStop();
       return CallToolResult(
@@ -1136,7 +1139,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_stream_toggle(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsStreamToggle(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().streamToggle();
       return CallToolResult(
@@ -1157,7 +1160,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_stream_send_caption(
+  FutureOr<CallToolResult> _obsStreamSendCaption(
     CallToolRequest request,
   ) async {
     try {
@@ -1184,7 +1187,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_record_status(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsRecordStatus(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().recordStatus();
       return CallToolResult(
@@ -1205,7 +1208,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_record_start(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsRecordStart(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().recordStart();
       return CallToolResult(
@@ -1226,7 +1229,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_record_stop(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsRecordStop(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().recordStop();
       return CallToolResult(
@@ -1247,7 +1250,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_record_toggle(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsRecordToggle(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().recordToggle();
       return CallToolResult(
@@ -1268,7 +1271,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_record_pause(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsRecordPause(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().recordPause();
       return CallToolResult(
@@ -1289,7 +1292,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_record_resume(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsRecordResume(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().recordResume();
       return CallToolResult(
@@ -1310,7 +1313,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_record_toggle_pause(
+  FutureOr<CallToolResult> _obsRecordTogglePause(
     CallToolRequest request,
   ) async {
     try {
@@ -1333,7 +1336,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_virtual_cam_status(
+  FutureOr<CallToolResult> _obsOutputsVirtualCamStatus(
     CallToolRequest request,
   ) async {
     try {
@@ -1357,7 +1360,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_virtual_cam_toggle(
+  FutureOr<CallToolResult> _obsOutputsVirtualCamToggle(
     CallToolRequest request,
   ) async {
     try {
@@ -1381,7 +1384,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_virtual_cam_start(
+  FutureOr<CallToolResult> _obsOutputsVirtualCamStart(
     CallToolRequest request,
   ) async {
     try {
@@ -1405,7 +1408,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_virtual_cam_stop(
+  FutureOr<CallToolResult> _obsOutputsVirtualCamStop(
     CallToolRequest request,
   ) async {
     try {
@@ -1429,7 +1432,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_replay_buffer_status(
+  FutureOr<CallToolResult> _obsOutputsReplayBufferStatus(
     CallToolRequest request,
   ) async {
     try {
@@ -1453,7 +1456,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_replay_buffer_toggle(
+  FutureOr<CallToolResult> _obsOutputsReplayBufferToggle(
     CallToolRequest request,
   ) async {
     try {
@@ -1477,7 +1480,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_replay_buffer_start(
+  FutureOr<CallToolResult> _obsOutputsReplayBufferStart(
     CallToolRequest request,
   ) async {
     try {
@@ -1503,7 +1506,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_replay_buffer_stop(
+  FutureOr<CallToolResult> _obsOutputsReplayBufferStop(
     CallToolRequest request,
   ) async {
     try {
@@ -1529,7 +1532,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_replay_buffer_save(
+  FutureOr<CallToolResult> _obsOutputsReplayBufferSave(
     CallToolRequest request,
   ) async {
     try {
@@ -1555,7 +1558,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_toggle(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsOutputsToggle(CallToolRequest request) async {
     try {
       final outputName = request.arguments!['outputName'] as String;
 
@@ -1580,7 +1583,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_start(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsOutputsStart(CallToolRequest request) async {
     try {
       final outputName = request.arguments!['outputName'] as String;
 
@@ -1605,7 +1608,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_stop(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsOutputsStop(CallToolRequest request) async {
     try {
       final outputName = request.arguments!['outputName'] as String;
 
@@ -1630,7 +1633,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_config_record_directory(
+  FutureOr<CallToolResult> _obsConfigRecordDirectory(
     CallToolRequest request,
   ) async {
     try {
@@ -1654,7 +1657,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_config_stream_service_settings(
+  FutureOr<CallToolResult> _obsConfigStreamServiceSettings(
     CallToolRequest request,
   ) async {
     try {
@@ -1678,7 +1681,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_ui_studio_mode_enabled(
+  FutureOr<CallToolResult> _obsUiStudioModeEnabled(
     CallToolRequest request,
   ) async {
     try {
@@ -1701,9 +1704,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_ui_set_studio_mode(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsUiSetStudioMode(CallToolRequest request) async {
     try {
       final enabled = request.arguments!['enabled'] as bool;
 
@@ -1728,7 +1729,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_ui_open_input_properties(
+  FutureOr<CallToolResult> _obsUiOpenInputProperties(
     CallToolRequest request,
   ) async {
     try {
@@ -1755,7 +1756,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_ui_open_input_filters(
+  FutureOr<CallToolResult> _obsUiOpenInputFilters(
     CallToolRequest request,
   ) async {
     try {
@@ -1782,7 +1783,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_ui_open_input_interact(
+  FutureOr<CallToolResult> _obsUiOpenInputInteract(
     CallToolRequest request,
   ) async {
     try {
@@ -1809,7 +1810,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_ui_monitor_list(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsUiMonitorList(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().uiMonitorList();
       return CallToolResult(
@@ -1830,7 +1831,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_transitions_trigger_studio(
+  FutureOr<CallToolResult> _obsTransitionsTriggerStudio(
     CallToolRequest request,
   ) async {
     try {
@@ -1854,7 +1855,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_transitions_kind_list(
+  FutureOr<CallToolResult> _obsTransitionsKindList(
     CallToolRequest request,
   ) async {
     try {
@@ -1877,7 +1878,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_transitions_scene_list(
+  FutureOr<CallToolResult> _obsTransitionsSceneList(
     CallToolRequest request,
   ) async {
     try {
@@ -1900,7 +1901,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_transitions_get_current(
+  FutureOr<CallToolResult> _obsTransitionsGetCurrent(
     CallToolRequest request,
   ) async {
     try {
@@ -1924,7 +1925,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_transitions_set_current(
+  FutureOr<CallToolResult> _obsTransitionsSetCurrent(
     CallToolRequest request,
   ) async {
     try {
@@ -1951,7 +1952,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_transitions_set_duration(
+  FutureOr<CallToolResult> _obsTransitionsSetDuration(
     CallToolRequest request,
   ) async {
     try {
@@ -1978,7 +1979,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_transitions_set_settings(
+  FutureOr<CallToolResult> _obsTransitionsSetSettings(
     CallToolRequest request,
   ) async {
     try {
@@ -2008,7 +2009,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_transitions_get_cursor(
+  FutureOr<CallToolResult> _obsTransitionsGetCursor(
     CallToolRequest request,
   ) async {
     try {
@@ -2031,7 +2032,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_transitions_set_tbar(
+  FutureOr<CallToolResult> _obsTransitionsSetTbar(
     CallToolRequest request,
   ) async {
     try {
@@ -2060,9 +2061,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_sources_get_active(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsSourcesGetActive(CallToolRequest request) async {
     try {
       final sourceName = request.arguments!['sourceName'] as String;
 
@@ -2087,7 +2086,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_sources_get_screenshot(
+  FutureOr<CallToolResult> _obsSourcesGetScreenshot(
     CallToolRequest request,
   ) async {
     try {
@@ -2123,7 +2122,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_sources_save_screenshot(
+  FutureOr<CallToolResult> _obsSourcesSaveScreenshot(
     CallToolRequest request,
   ) async {
     try {
@@ -2161,7 +2160,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_sources_get_private_settings(
+  FutureOr<CallToolResult> _obsSourcesGetPrivateSettings(
     CallToolRequest request,
   ) async {
     try {
@@ -2191,7 +2190,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_sources_set_private_settings(
+  FutureOr<CallToolResult> _obsSourcesSetPrivateSettings(
     CallToolRequest request,
   ) async {
     try {
@@ -2223,7 +2222,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_media_inputs_get_status(
+  FutureOr<CallToolResult> _obsMediaInputsGetStatus(
     CallToolRequest request,
   ) async {
     try {
@@ -2252,7 +2251,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_media_inputs_set_cursor(
+  FutureOr<CallToolResult> _obsMediaInputsSetCursor(
     CallToolRequest request,
   ) async {
     try {
@@ -2283,7 +2282,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_media_inputs_offset_cursor(
+  FutureOr<CallToolResult> _obsMediaInputsOffsetCursor(
     CallToolRequest request,
   ) async {
     try {
@@ -2315,7 +2314,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_media_inputs_trigger_action(
+  FutureOr<CallToolResult> _obsMediaInputsTriggerAction(
     CallToolRequest request,
   ) async {
     try {
@@ -2347,7 +2346,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_get_deinterlace_mode(
+  FutureOr<CallToolResult> _obsInputsGetDeinterlaceMode(
     CallToolRequest request,
   ) async {
     try {
@@ -2374,7 +2373,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_set_deinterlace_mode(
+  FutureOr<CallToolResult> _obsInputsSetDeinterlaceMode(
     CallToolRequest request,
   ) async {
     try {
@@ -2406,7 +2405,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_get_deinterlace_field_order(
+  FutureOr<CallToolResult> _obsInputsGetDeinterlaceFieldOrder(
     CallToolRequest request,
   ) async {
     try {
@@ -2438,7 +2437,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_set_deinterlace_field_order(
+  FutureOr<CallToolResult> _obsInputsSetDeinterlaceFieldOrder(
     CallToolRequest request,
   ) async {
     try {
@@ -2473,9 +2472,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_set_volume(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsInputsSetVolume(CallToolRequest request) async {
     try {
       final inputName = request.arguments?['inputName'] as String?;
       final inputUuid = request.arguments?['inputUuid'] as String?;
@@ -2504,7 +2501,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_get_default_settings(
+  FutureOr<CallToolResult> _obsInputsGetDefaultSettings(
     CallToolRequest request,
   ) async {
     try {
@@ -2530,13 +2527,13 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_general_call_vendor_request(
+  FutureOr<CallToolResult> _obsGeneralCallVendorRequest(
     CallToolRequest request,
   ) async {
     try {
       final vendorName = request.arguments!['vendorName'] as String;
       final requestType = request.arguments!['requestType'] as String;
-      final requestData = request.arguments?['requestData'] as dynamic?;
+      final requestData = request.arguments?['requestData'] as dynamic;
 
       final result = await obs_mcp_server.ObsMcpServer()
           .generalCallVendorRequest(
@@ -2562,7 +2559,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_general_trigger_hotkey_by_key(
+  FutureOr<CallToolResult> _obsGeneralTriggerHotkeyByKey(
     CallToolRequest request,
   ) async {
     try {
@@ -2599,9 +2596,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_create(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsSceneItemsCreate(CallToolRequest request) async {
     try {
       final sceneName = request.arguments!['sceneName'] as String;
       final sourceName = request.arguments!['sourceName'] as String;
@@ -2630,7 +2625,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_duplicate(
+  FutureOr<CallToolResult> _obsSceneItemsDuplicate(
     CallToolRequest request,
   ) async {
     try {
@@ -2662,9 +2657,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_remove(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsSceneItemsRemove(CallToolRequest request) async {
     try {
       final sceneName = request.arguments!['sceneName'] as String;
       final sceneItemId = request.arguments!['sceneItemId'] as int;
@@ -2691,7 +2684,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_get_transform(
+  FutureOr<CallToolResult> _obsSceneItemsGetTransform(
     CallToolRequest request,
   ) async {
     try {
@@ -2720,7 +2713,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_canvases_list(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsCanvasesList(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().canvasesList();
       return CallToolResult(
@@ -2741,9 +2734,28 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_filters_kind_list(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsVideoSettings(CallToolRequest request) async {
+    try {
+      final result = await obs_mcp_server.ObsMcpServer().videoSettings();
+      return CallToolResult(
+        content: [TextContent(text: _serializeResult(result))],
+      );
+    } catch (e, st) {
+      if (_logErrors) {
+        io.stderr.writeln('[easy_api] obs_video_settings: $e');
+        io.stderr.writeln(st);
+        await io.stderr.flush();
+      }
+      return CallToolResult(
+        content: [
+          TextContent(text: 'An error occurred while processing the request.'),
+        ],
+        isError: true,
+      );
+    }
+  }
+
+  FutureOr<CallToolResult> _obsFiltersKindList(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().filtersKindList();
       return CallToolResult(
@@ -2764,7 +2776,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_filters_list(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsFiltersList(CallToolRequest request) async {
     try {
       final sourceName = request.arguments!['sourceName'] as String;
 
@@ -2789,7 +2801,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_filters_default_settings(
+  FutureOr<CallToolResult> _obsFiltersDefaultSettings(
     CallToolRequest request,
   ) async {
     try {
@@ -2816,12 +2828,12 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_filters_create(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsFiltersCreate(CallToolRequest request) async {
     try {
       final sourceName = request.arguments!['sourceName'] as String;
       final filterName = request.arguments!['filterName'] as String;
       final filterKind = request.arguments!['filterKind'] as String;
-      final filterSettings = request.arguments?['filterSettings'] as dynamic?;
+      final filterSettings = request.arguments?['filterSettings'] as dynamic;
 
       final result = await obs_mcp_server.ObsMcpServer().filtersCreate(
         sourceName: sourceName,
@@ -2847,7 +2859,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_filters_remove(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsFiltersRemove(CallToolRequest request) async {
     try {
       final sourceName = request.arguments!['sourceName'] as String;
       final filterName = request.arguments!['filterName'] as String;
@@ -2874,7 +2886,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_filters_rename(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsFiltersRename(CallToolRequest request) async {
     try {
       final sourceName = request.arguments!['sourceName'] as String;
       final filterName = request.arguments!['filterName'] as String;
@@ -2903,7 +2915,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_filters_get(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsFiltersGet(CallToolRequest request) async {
     try {
       final sourceName = request.arguments!['sourceName'] as String;
       final filterName = request.arguments!['filterName'] as String;
@@ -2930,9 +2942,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_filters_set_index(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsFiltersSetIndex(CallToolRequest request) async {
     try {
       final sourceName = request.arguments!['sourceName'] as String;
       final filterName = request.arguments!['filterName'] as String;
@@ -2961,7 +2971,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_filters_set_settings(
+  FutureOr<CallToolResult> _obsFiltersSetSettings(
     CallToolRequest request,
   ) async {
     try {
@@ -2994,7 +3004,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_filters_set_enabled(
+  FutureOr<CallToolResult> _obsFiltersSetEnabled(
     CallToolRequest request,
   ) async {
     try {
@@ -3025,7 +3035,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_list(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsOutputsList(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().outputsList();
       return CallToolResult(
@@ -3046,9 +3056,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_get_status(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsOutputsGetStatus(CallToolRequest request) async {
     try {
       final outputName = request.arguments!['outputName'] as String;
 
@@ -3073,7 +3081,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_get_settings(
+  FutureOr<CallToolResult> _obsOutputsGetSettings(
     CallToolRequest request,
   ) async {
     try {
@@ -3100,7 +3108,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_outputs_set_settings(
+  FutureOr<CallToolResult> _obsOutputsSetSettings(
     CallToolRequest request,
   ) async {
     try {
@@ -3129,7 +3137,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_get_audio_balance(
+  FutureOr<CallToolResult> _obsInputsGetAudioBalance(
     CallToolRequest request,
   ) async {
     try {
@@ -3158,7 +3166,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_set_audio_balance(
+  FutureOr<CallToolResult> _obsInputsSetAudioBalance(
     CallToolRequest request,
   ) async {
     try {
@@ -3190,7 +3198,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_get_audio_sync_offset(
+  FutureOr<CallToolResult> _obsInputsGetAudioSyncOffset(
     CallToolRequest request,
   ) async {
     try {
@@ -3217,7 +3225,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_set_audio_sync_offset(
+  FutureOr<CallToolResult> _obsInputsSetAudioSyncOffset(
     CallToolRequest request,
   ) async {
     try {
@@ -3250,7 +3258,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_get_audio_monitor_type(
+  FutureOr<CallToolResult> _obsInputsGetAudioMonitorType(
     CallToolRequest request,
   ) async {
     try {
@@ -3280,7 +3288,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_set_audio_monitor_type(
+  FutureOr<CallToolResult> _obsInputsSetAudioMonitorType(
     CallToolRequest request,
   ) async {
     try {
@@ -3312,7 +3320,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_get_audio_tracks(
+  FutureOr<CallToolResult> _obsInputsGetAudioTracks(
     CallToolRequest request,
   ) async {
     try {
@@ -3341,7 +3349,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_set_audio_tracks(
+  FutureOr<CallToolResult> _obsInputsSetAudioTracks(
     CallToolRequest request,
   ) async {
     try {
@@ -3372,7 +3380,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_get_properties_list_items(
+  FutureOr<CallToolResult> _obsInputsGetPropertiesListItems(
     CallToolRequest request,
   ) async {
     try {
@@ -3406,7 +3414,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_inputs_press_properties_button(
+  FutureOr<CallToolResult> _obsInputsPressPropertiesButton(
     CallToolRequest request,
   ) async {
     try {
@@ -3438,7 +3446,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_get_source(
+  FutureOr<CallToolResult> _obsSceneItemsGetSource(
     CallToolRequest request,
   ) async {
     try {
@@ -3469,7 +3477,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_get_private_settings(
+  FutureOr<CallToolResult> _obsSceneItemsGetPrivateSettings(
     CallToolRequest request,
   ) async {
     try {
@@ -3503,7 +3511,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_set_private_settings(
+  FutureOr<CallToolResult> _obsSceneItemsSetPrivateSettings(
     CallToolRequest request,
   ) async {
     try {
@@ -3540,9 +3548,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_connection_status(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsConnectionStatus(CallToolRequest request) async {
     try {
       final result = obs_mcp_server.ObsMcpServer().connectionStatus();
       return CallToolResult(
@@ -3563,7 +3569,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_connection_ping(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsConnectionPing(CallToolRequest request) async {
     try {
       final result = await obs_mcp_server.ObsMcpServer().connectionPing();
       return CallToolResult(
@@ -3584,9 +3590,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_events_subscribe(
-    CallToolRequest request,
-  ) async {
+  FutureOr<CallToolResult> _obsEventsSubscribe(CallToolRequest request) async {
     try {
       final mask = request.arguments?['mask'] as int?;
       final subscriptions =
@@ -3614,7 +3618,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_wait_for_event(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsWaitForEvent(CallToolRequest request) async {
     try {
       final eventType = request.arguments!['eventType'] as String;
       final timeoutMs = request.arguments?['timeoutMs'] as int?;
@@ -3641,7 +3645,7 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_client_sleep(CallToolRequest request) async {
+  FutureOr<CallToolResult> _obsClientSleep(CallToolRequest request) async {
     try {
       final ms = request.arguments!['ms'] as int;
 
@@ -3664,18 +3668,18 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     }
   }
 
-  FutureOr<CallToolResult> _obs_scene_items_animate_transform(
+  FutureOr<CallToolResult> _obsSceneItemsAnimateTransform(
     CallToolRequest request,
   ) async {
     try {
       final sceneName = request.arguments!['sceneName'] as String;
       final sceneItemId = request.arguments!['sceneItemId'] as int;
       final durationMs = request.arguments!['durationMs'] as int;
-      final targetPositionX = request.arguments?['targetPositionX'] as dynamic?;
-      final targetPositionY = request.arguments?['targetPositionY'] as dynamic?;
-      final targetScaleX = request.arguments?['targetScaleX'] as dynamic?;
-      final targetScaleY = request.arguments?['targetScaleY'] as dynamic?;
-      final targetRotation = request.arguments?['targetRotation'] as dynamic?;
+      final targetPositionX = request.arguments?['targetPositionX'] as dynamic;
+      final targetPositionY = request.arguments?['targetPositionY'] as dynamic;
+      final targetScaleX = request.arguments?['targetScaleX'] as dynamic;
+      final targetScaleY = request.arguments?['targetScaleY'] as dynamic;
+      final targetRotation = request.arguments?['targetRotation'] as dynamic;
       final targetCropLeft = request.arguments?['targetCropLeft'] as int?;
       final targetCropTop = request.arguments?['targetCropTop'] as int?;
       final targetCropRight = request.arguments?['targetCropRight'] as int?;
@@ -5050,6 +5054,12 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
       'parameters': <Map<String, dynamic>>[],
     },
     <String, dynamic>{
+      'name': 'obs_video_settings',
+      'description':
+          'Return base/output canvas dimensions and FPS via the legacy GetVideoSettings request. Works on every OBS WebSocket v5+ build (use this on builds older than v5.7.0 where canvases_list errors).',
+      'parameters': <Map<String, dynamic>>[],
+    },
+    <String, dynamic>{
       'name': 'obs_filters_kind_list',
       'description': 'Return the list of all available source filter kinds.',
       'parameters': <Map<String, dynamic>>[],
@@ -5670,6 +5680,18 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
       final detailLevel =
           (request.arguments?['detail_level'] as String?) ?? 'brief';
 
+      // Validate query length
+      if (query.length > 500) {
+        return CallToolResult(
+          content: [
+            TextContent(
+              text: 'Search query exceeds maximum length of 500 characters.',
+            ),
+          ],
+          isError: true,
+        );
+      }
+
       final terms = query
           .toLowerCase()
           .split(' ')
@@ -5774,6 +5796,19 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
   FutureOr<CallToolResult> _execute(CallToolRequest request) async {
     try {
       final code = request.arguments!['code'] as String;
+
+      // Validate code length to prevent abuse
+      if (code.length > 10000) {
+        return CallToolResult(
+          content: [
+            TextContent(
+              text: 'Code exceeds maximum length of 10000 characters.',
+            ),
+          ],
+          isError: true,
+        );
+      }
+
       final result = await _runCodeSandbox(code, 30);
       return CallToolResult(content: [TextContent(text: result ?? 'null')]);
     } catch (e, st) {
@@ -5796,12 +5831,32 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
     io.Directory? tempDir;
     try {
       final wrapper = _buildJsWrapper(userCode);
-      tempDir = await io.Directory.systemTemp.createTemp('mcp_code_mode_');
+
+      // Security: Use unpredictable directory name with timestamp + random suffix
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final random = math.Random.secure();
+      final suffix = List.generate(
+        8,
+        (_) => random.nextInt(16).toRadixString(16),
+      ).join();
+      tempDir = await io.Directory.systemTemp.createTemp(
+        'mcp_sandbox_${timestamp}_${suffix}_',
+      );
       final scriptFile = io.File('${tempDir.path}/sandbox.js');
+
+      // Set restrictive permissions (owner read/write only)
+      if (io.Platform.isLinux || io.Platform.isMacOS) {
+        await scriptFile.create(recursive: true);
+        await io.Process.run('chmod', ['700', tempDir.path]);
+        await io.Process.run('chmod', ['600', scriptFile.path]);
+      }
+
       await scriptFile.writeAsString(wrapper);
 
       process = await io.Process.start('node', [
         '--max-old-space-size=64',
+        '--no-addons',
+        '--frozen-intrinsics',
         scriptFile.path,
       ]);
     } catch (e) {
@@ -5896,8 +5951,32 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
 
       return result;
     } finally {
-      process.kill(io.ProcessSignal.sigkill);
-      await tempDir.delete(recursive: true);
+      // Graceful shutdown: process is guaranteed to be non-null here
+      // (otherwise process.stdout would have thrown earlier)
+      final proc = process;
+      final dir = tempDir;
+      try {
+        // First, check if process already exited naturally
+        await proc.exitCode.timeout(const Duration(milliseconds: 100));
+      } catch (_) {
+        // Process still running, begin graceful shutdown
+        proc.kill(io.ProcessSignal.sigterm);
+        try {
+          // Wait up to 2 seconds for graceful shutdown
+          await proc.exitCode.timeout(
+            const Duration(seconds: 2),
+            onTimeout: () {
+              // Process didn't exit, force kill
+              proc.kill(io.ProcessSignal.sigkill);
+              return -1;
+            },
+          );
+        } catch (_) {
+          // Error during exit code wait - attempt force kill as fallback
+          proc.kill(io.ProcessSignal.sigkill);
+        }
+      }
+      await dir.delete(recursive: true);
     }
   }
 
@@ -6245,6 +6324,9 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
       "async function external_obs_canvases_list(args) { return call_tool('obs_canvases_list', args); }",
     );
     sb.writeln(
+      "async function external_obs_video_settings(args) { return call_tool('obs_video_settings', args); }",
+    );
+    sb.writeln(
       "async function external_obs_filters_kind_list(args) { return call_tool('obs_filters_kind_list', args); }",
     );
     sb.writeln(
@@ -6380,403 +6462,406 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
         result = await _search(request);
         break;
       case 'obs_connect':
-        result = await _obs_connect(request);
+        result = await _obsConnect(request);
         break;
       case 'obs_disconnect':
-        result = await _obs_disconnect(request);
+        result = await _obsDisconnect(request);
         break;
       case 'obs_is_connected':
-        result = await _obs_is_connected(request);
+        result = await _obsIsConnected(request);
         break;
       case 'obs_send_raw':
-        result = await _obs_send_raw(request);
+        result = await _obsSendRaw(request);
         break;
       case 'obs_general_version':
-        result = await _obs_general_version(request);
+        result = await _obsGeneralVersion(request);
         break;
       case 'obs_general_stats':
-        result = await _obs_general_stats(request);
+        result = await _obsGeneralStats(request);
         break;
       case 'obs_general_hotkeys':
-        result = await _obs_general_hotkeys(request);
+        result = await _obsGeneralHotkeys(request);
         break;
       case 'obs_general_trigger_hotkey':
-        result = await _obs_general_trigger_hotkey(request);
+        result = await _obsGeneralTriggerHotkey(request);
         break;
       case 'obs_general_sleep':
-        result = await _obs_general_sleep(request);
+        result = await _obsGeneralSleep(request);
         break;
       case 'obs_general_broadcast_custom_event':
-        result = await _obs_general_broadcast_custom_event(request);
+        result = await _obsGeneralBroadcastCustomEvent(request);
         break;
       case 'obs_scenes_list':
-        result = await _obs_scenes_list(request);
+        result = await _obsScenesList(request);
         break;
       case 'obs_scenes_group_list':
-        result = await _obs_scenes_group_list(request);
+        result = await _obsScenesGroupList(request);
         break;
       case 'obs_scenes_get_current_program':
-        result = await _obs_scenes_get_current_program(request);
+        result = await _obsScenesGetCurrentProgram(request);
         break;
       case 'obs_scenes_set_current_program':
-        result = await _obs_scenes_set_current_program(request);
+        result = await _obsScenesSetCurrentProgram(request);
         break;
       case 'obs_scenes_get_current_preview':
-        result = await _obs_scenes_get_current_preview(request);
+        result = await _obsScenesGetCurrentPreview(request);
         break;
       case 'obs_scenes_set_current_preview':
-        result = await _obs_scenes_set_current_preview(request);
+        result = await _obsScenesSetCurrentPreview(request);
         break;
       case 'obs_scenes_create':
-        result = await _obs_scenes_create(request);
+        result = await _obsScenesCreate(request);
         break;
       case 'obs_scene_items_list':
-        result = await _obs_scene_items_list(request);
+        result = await _obsSceneItemsList(request);
         break;
       case 'obs_scene_items_group_list':
-        result = await _obs_scene_items_group_list(request);
+        result = await _obsSceneItemsGroupList(request);
         break;
       case 'obs_scene_items_get_id':
-        result = await _obs_scene_items_get_id(request);
+        result = await _obsSceneItemsGetId(request);
         break;
       case 'obs_scene_items_get_enabled':
-        result = await _obs_scene_items_get_enabled(request);
+        result = await _obsSceneItemsGetEnabled(request);
         break;
       case 'obs_scene_items_set_enabled':
-        result = await _obs_scene_items_set_enabled(request);
+        result = await _obsSceneItemsSetEnabled(request);
         break;
       case 'obs_scene_items_get_locked':
-        result = await _obs_scene_items_get_locked(request);
+        result = await _obsSceneItemsGetLocked(request);
         break;
       case 'obs_scene_items_set_locked':
-        result = await _obs_scene_items_set_locked(request);
+        result = await _obsSceneItemsSetLocked(request);
         break;
       case 'obs_scene_items_set_transform':
-        result = await _obs_scene_items_set_transform(request);
+        result = await _obsSceneItemsSetTransform(request);
         break;
       case 'obs_inputs_list':
-        result = await _obs_inputs_list(request);
+        result = await _obsInputsList(request);
         break;
       case 'obs_inputs_kind_list':
-        result = await _obs_inputs_kind_list(request);
+        result = await _obsInputsKindList(request);
         break;
       case 'obs_inputs_special':
-        result = await _obs_inputs_special(request);
+        result = await _obsInputsSpecial(request);
         break;
       case 'obs_inputs_get_mute':
-        result = await _obs_inputs_get_mute(request);
+        result = await _obsInputsGetMute(request);
         break;
       case 'obs_inputs_set_mute':
-        result = await _obs_inputs_set_mute(request);
+        result = await _obsInputsSetMute(request);
         break;
       case 'obs_inputs_toggle_mute':
-        result = await _obs_inputs_toggle_mute(request);
+        result = await _obsInputsToggleMute(request);
         break;
       case 'obs_inputs_get_volume':
-        result = await _obs_inputs_get_volume(request);
+        result = await _obsInputsGetVolume(request);
         break;
       case 'obs_inputs_get_settings':
-        result = await _obs_inputs_get_settings(request);
+        result = await _obsInputsGetSettings(request);
         break;
       case 'obs_inputs_set_settings':
-        result = await _obs_inputs_set_settings(request);
+        result = await _obsInputsSetSettings(request);
         break;
       case 'obs_inputs_set_name':
-        result = await _obs_inputs_set_name(request);
+        result = await _obsInputsSetName(request);
         break;
       case 'obs_inputs_create':
-        result = await _obs_inputs_create(request);
+        result = await _obsInputsCreate(request);
         break;
       case 'obs_inputs_remove':
-        result = await _obs_inputs_remove(request);
+        result = await _obsInputsRemove(request);
         break;
       case 'obs_stream_status':
-        result = await _obs_stream_status(request);
+        result = await _obsStreamStatus(request);
         break;
       case 'obs_stream_start':
-        result = await _obs_stream_start(request);
+        result = await _obsStreamStart(request);
         break;
       case 'obs_stream_stop':
-        result = await _obs_stream_stop(request);
+        result = await _obsStreamStop(request);
         break;
       case 'obs_stream_toggle':
-        result = await _obs_stream_toggle(request);
+        result = await _obsStreamToggle(request);
         break;
       case 'obs_stream_send_caption':
-        result = await _obs_stream_send_caption(request);
+        result = await _obsStreamSendCaption(request);
         break;
       case 'obs_record_status':
-        result = await _obs_record_status(request);
+        result = await _obsRecordStatus(request);
         break;
       case 'obs_record_start':
-        result = await _obs_record_start(request);
+        result = await _obsRecordStart(request);
         break;
       case 'obs_record_stop':
-        result = await _obs_record_stop(request);
+        result = await _obsRecordStop(request);
         break;
       case 'obs_record_toggle':
-        result = await _obs_record_toggle(request);
+        result = await _obsRecordToggle(request);
         break;
       case 'obs_record_pause':
-        result = await _obs_record_pause(request);
+        result = await _obsRecordPause(request);
         break;
       case 'obs_record_resume':
-        result = await _obs_record_resume(request);
+        result = await _obsRecordResume(request);
         break;
       case 'obs_record_toggle_pause':
-        result = await _obs_record_toggle_pause(request);
+        result = await _obsRecordTogglePause(request);
         break;
       case 'obs_outputs_virtual_cam_status':
-        result = await _obs_outputs_virtual_cam_status(request);
+        result = await _obsOutputsVirtualCamStatus(request);
         break;
       case 'obs_outputs_virtual_cam_toggle':
-        result = await _obs_outputs_virtual_cam_toggle(request);
+        result = await _obsOutputsVirtualCamToggle(request);
         break;
       case 'obs_outputs_virtual_cam_start':
-        result = await _obs_outputs_virtual_cam_start(request);
+        result = await _obsOutputsVirtualCamStart(request);
         break;
       case 'obs_outputs_virtual_cam_stop':
-        result = await _obs_outputs_virtual_cam_stop(request);
+        result = await _obsOutputsVirtualCamStop(request);
         break;
       case 'obs_outputs_replay_buffer_status':
-        result = await _obs_outputs_replay_buffer_status(request);
+        result = await _obsOutputsReplayBufferStatus(request);
         break;
       case 'obs_outputs_replay_buffer_toggle':
-        result = await _obs_outputs_replay_buffer_toggle(request);
+        result = await _obsOutputsReplayBufferToggle(request);
         break;
       case 'obs_outputs_replay_buffer_start':
-        result = await _obs_outputs_replay_buffer_start(request);
+        result = await _obsOutputsReplayBufferStart(request);
         break;
       case 'obs_outputs_replay_buffer_stop':
-        result = await _obs_outputs_replay_buffer_stop(request);
+        result = await _obsOutputsReplayBufferStop(request);
         break;
       case 'obs_outputs_replay_buffer_save':
-        result = await _obs_outputs_replay_buffer_save(request);
+        result = await _obsOutputsReplayBufferSave(request);
         break;
       case 'obs_outputs_toggle':
-        result = await _obs_outputs_toggle(request);
+        result = await _obsOutputsToggle(request);
         break;
       case 'obs_outputs_start':
-        result = await _obs_outputs_start(request);
+        result = await _obsOutputsStart(request);
         break;
       case 'obs_outputs_stop':
-        result = await _obs_outputs_stop(request);
+        result = await _obsOutputsStop(request);
         break;
       case 'obs_config_record_directory':
-        result = await _obs_config_record_directory(request);
+        result = await _obsConfigRecordDirectory(request);
         break;
       case 'obs_config_stream_service_settings':
-        result = await _obs_config_stream_service_settings(request);
+        result = await _obsConfigStreamServiceSettings(request);
         break;
       case 'obs_ui_studio_mode_enabled':
-        result = await _obs_ui_studio_mode_enabled(request);
+        result = await _obsUiStudioModeEnabled(request);
         break;
       case 'obs_ui_set_studio_mode':
-        result = await _obs_ui_set_studio_mode(request);
+        result = await _obsUiSetStudioMode(request);
         break;
       case 'obs_ui_open_input_properties':
-        result = await _obs_ui_open_input_properties(request);
+        result = await _obsUiOpenInputProperties(request);
         break;
       case 'obs_ui_open_input_filters':
-        result = await _obs_ui_open_input_filters(request);
+        result = await _obsUiOpenInputFilters(request);
         break;
       case 'obs_ui_open_input_interact':
-        result = await _obs_ui_open_input_interact(request);
+        result = await _obsUiOpenInputInteract(request);
         break;
       case 'obs_ui_monitor_list':
-        result = await _obs_ui_monitor_list(request);
+        result = await _obsUiMonitorList(request);
         break;
       case 'obs_transitions_trigger_studio':
-        result = await _obs_transitions_trigger_studio(request);
+        result = await _obsTransitionsTriggerStudio(request);
         break;
       case 'obs_transitions_kind_list':
-        result = await _obs_transitions_kind_list(request);
+        result = await _obsTransitionsKindList(request);
         break;
       case 'obs_transitions_scene_list':
-        result = await _obs_transitions_scene_list(request);
+        result = await _obsTransitionsSceneList(request);
         break;
       case 'obs_transitions_get_current':
-        result = await _obs_transitions_get_current(request);
+        result = await _obsTransitionsGetCurrent(request);
         break;
       case 'obs_transitions_set_current':
-        result = await _obs_transitions_set_current(request);
+        result = await _obsTransitionsSetCurrent(request);
         break;
       case 'obs_transitions_set_duration':
-        result = await _obs_transitions_set_duration(request);
+        result = await _obsTransitionsSetDuration(request);
         break;
       case 'obs_transitions_set_settings':
-        result = await _obs_transitions_set_settings(request);
+        result = await _obsTransitionsSetSettings(request);
         break;
       case 'obs_transitions_get_cursor':
-        result = await _obs_transitions_get_cursor(request);
+        result = await _obsTransitionsGetCursor(request);
         break;
       case 'obs_transitions_set_tbar':
-        result = await _obs_transitions_set_tbar(request);
+        result = await _obsTransitionsSetTbar(request);
         break;
       case 'obs_sources_get_active':
-        result = await _obs_sources_get_active(request);
+        result = await _obsSourcesGetActive(request);
         break;
       case 'obs_sources_get_screenshot':
-        result = await _obs_sources_get_screenshot(request);
+        result = await _obsSourcesGetScreenshot(request);
         break;
       case 'obs_sources_save_screenshot':
-        result = await _obs_sources_save_screenshot(request);
+        result = await _obsSourcesSaveScreenshot(request);
         break;
       case 'obs_sources_get_private_settings':
-        result = await _obs_sources_get_private_settings(request);
+        result = await _obsSourcesGetPrivateSettings(request);
         break;
       case 'obs_sources_set_private_settings':
-        result = await _obs_sources_set_private_settings(request);
+        result = await _obsSourcesSetPrivateSettings(request);
         break;
       case 'obs_media_inputs_get_status':
-        result = await _obs_media_inputs_get_status(request);
+        result = await _obsMediaInputsGetStatus(request);
         break;
       case 'obs_media_inputs_set_cursor':
-        result = await _obs_media_inputs_set_cursor(request);
+        result = await _obsMediaInputsSetCursor(request);
         break;
       case 'obs_media_inputs_offset_cursor':
-        result = await _obs_media_inputs_offset_cursor(request);
+        result = await _obsMediaInputsOffsetCursor(request);
         break;
       case 'obs_media_inputs_trigger_action':
-        result = await _obs_media_inputs_trigger_action(request);
+        result = await _obsMediaInputsTriggerAction(request);
         break;
       case 'obs_inputs_get_deinterlace_mode':
-        result = await _obs_inputs_get_deinterlace_mode(request);
+        result = await _obsInputsGetDeinterlaceMode(request);
         break;
       case 'obs_inputs_set_deinterlace_mode':
-        result = await _obs_inputs_set_deinterlace_mode(request);
+        result = await _obsInputsSetDeinterlaceMode(request);
         break;
       case 'obs_inputs_get_deinterlace_field_order':
-        result = await _obs_inputs_get_deinterlace_field_order(request);
+        result = await _obsInputsGetDeinterlaceFieldOrder(request);
         break;
       case 'obs_inputs_set_deinterlace_field_order':
-        result = await _obs_inputs_set_deinterlace_field_order(request);
+        result = await _obsInputsSetDeinterlaceFieldOrder(request);
         break;
       case 'obs_inputs_set_volume':
-        result = await _obs_inputs_set_volume(request);
+        result = await _obsInputsSetVolume(request);
         break;
       case 'obs_inputs_get_default_settings':
-        result = await _obs_inputs_get_default_settings(request);
+        result = await _obsInputsGetDefaultSettings(request);
         break;
       case 'obs_general_call_vendor_request':
-        result = await _obs_general_call_vendor_request(request);
+        result = await _obsGeneralCallVendorRequest(request);
         break;
       case 'obs_general_trigger_hotkey_by_key':
-        result = await _obs_general_trigger_hotkey_by_key(request);
+        result = await _obsGeneralTriggerHotkeyByKey(request);
         break;
       case 'obs_scene_items_create':
-        result = await _obs_scene_items_create(request);
+        result = await _obsSceneItemsCreate(request);
         break;
       case 'obs_scene_items_duplicate':
-        result = await _obs_scene_items_duplicate(request);
+        result = await _obsSceneItemsDuplicate(request);
         break;
       case 'obs_scene_items_remove':
-        result = await _obs_scene_items_remove(request);
+        result = await _obsSceneItemsRemove(request);
         break;
       case 'obs_scene_items_get_transform':
-        result = await _obs_scene_items_get_transform(request);
+        result = await _obsSceneItemsGetTransform(request);
         break;
       case 'obs_canvases_list':
-        result = await _obs_canvases_list(request);
+        result = await _obsCanvasesList(request);
+        break;
+      case 'obs_video_settings':
+        result = await _obsVideoSettings(request);
         break;
       case 'obs_filters_kind_list':
-        result = await _obs_filters_kind_list(request);
+        result = await _obsFiltersKindList(request);
         break;
       case 'obs_filters_list':
-        result = await _obs_filters_list(request);
+        result = await _obsFiltersList(request);
         break;
       case 'obs_filters_default_settings':
-        result = await _obs_filters_default_settings(request);
+        result = await _obsFiltersDefaultSettings(request);
         break;
       case 'obs_filters_create':
-        result = await _obs_filters_create(request);
+        result = await _obsFiltersCreate(request);
         break;
       case 'obs_filters_remove':
-        result = await _obs_filters_remove(request);
+        result = await _obsFiltersRemove(request);
         break;
       case 'obs_filters_rename':
-        result = await _obs_filters_rename(request);
+        result = await _obsFiltersRename(request);
         break;
       case 'obs_filters_get':
-        result = await _obs_filters_get(request);
+        result = await _obsFiltersGet(request);
         break;
       case 'obs_filters_set_index':
-        result = await _obs_filters_set_index(request);
+        result = await _obsFiltersSetIndex(request);
         break;
       case 'obs_filters_set_settings':
-        result = await _obs_filters_set_settings(request);
+        result = await _obsFiltersSetSettings(request);
         break;
       case 'obs_filters_set_enabled':
-        result = await _obs_filters_set_enabled(request);
+        result = await _obsFiltersSetEnabled(request);
         break;
       case 'obs_outputs_list':
-        result = await _obs_outputs_list(request);
+        result = await _obsOutputsList(request);
         break;
       case 'obs_outputs_get_status':
-        result = await _obs_outputs_get_status(request);
+        result = await _obsOutputsGetStatus(request);
         break;
       case 'obs_outputs_get_settings':
-        result = await _obs_outputs_get_settings(request);
+        result = await _obsOutputsGetSettings(request);
         break;
       case 'obs_outputs_set_settings':
-        result = await _obs_outputs_set_settings(request);
+        result = await _obsOutputsSetSettings(request);
         break;
       case 'obs_inputs_get_audio_balance':
-        result = await _obs_inputs_get_audio_balance(request);
+        result = await _obsInputsGetAudioBalance(request);
         break;
       case 'obs_inputs_set_audio_balance':
-        result = await _obs_inputs_set_audio_balance(request);
+        result = await _obsInputsSetAudioBalance(request);
         break;
       case 'obs_inputs_get_audio_sync_offset':
-        result = await _obs_inputs_get_audio_sync_offset(request);
+        result = await _obsInputsGetAudioSyncOffset(request);
         break;
       case 'obs_inputs_set_audio_sync_offset':
-        result = await _obs_inputs_set_audio_sync_offset(request);
+        result = await _obsInputsSetAudioSyncOffset(request);
         break;
       case 'obs_inputs_get_audio_monitor_type':
-        result = await _obs_inputs_get_audio_monitor_type(request);
+        result = await _obsInputsGetAudioMonitorType(request);
         break;
       case 'obs_inputs_set_audio_monitor_type':
-        result = await _obs_inputs_set_audio_monitor_type(request);
+        result = await _obsInputsSetAudioMonitorType(request);
         break;
       case 'obs_inputs_get_audio_tracks':
-        result = await _obs_inputs_get_audio_tracks(request);
+        result = await _obsInputsGetAudioTracks(request);
         break;
       case 'obs_inputs_set_audio_tracks':
-        result = await _obs_inputs_set_audio_tracks(request);
+        result = await _obsInputsSetAudioTracks(request);
         break;
       case 'obs_inputs_get_properties_list_items':
-        result = await _obs_inputs_get_properties_list_items(request);
+        result = await _obsInputsGetPropertiesListItems(request);
         break;
       case 'obs_inputs_press_properties_button':
-        result = await _obs_inputs_press_properties_button(request);
+        result = await _obsInputsPressPropertiesButton(request);
         break;
       case 'obs_scene_items_get_source':
-        result = await _obs_scene_items_get_source(request);
+        result = await _obsSceneItemsGetSource(request);
         break;
       case 'obs_scene_items_get_private_settings':
-        result = await _obs_scene_items_get_private_settings(request);
+        result = await _obsSceneItemsGetPrivateSettings(request);
         break;
       case 'obs_scene_items_set_private_settings':
-        result = await _obs_scene_items_set_private_settings(request);
+        result = await _obsSceneItemsSetPrivateSettings(request);
         break;
       case 'obs_connection_status':
-        result = await _obs_connection_status(request);
+        result = await _obsConnectionStatus(request);
         break;
       case 'obs_connection_ping':
-        result = await _obs_connection_ping(request);
+        result = await _obsConnectionPing(request);
         break;
       case 'obs_events_subscribe':
-        result = await _obs_events_subscribe(request);
+        result = await _obsEventsSubscribe(request);
         break;
       case 'obs_wait_for_event':
-        result = await _obs_wait_for_event(request);
+        result = await _obsWaitForEvent(request);
         break;
       case 'obs_client_sleep':
-        result = await _obs_client_sleep(request);
+        result = await _obsClientSleep(request);
         break;
       case 'obs_scene_items_animate_transform':
-        result = await _obs_scene_items_animate_transform(request);
+        result = await _obsSceneItemsAnimateTransform(request);
         break;
       default:
         throw StateError('Unknown tool: $toolName');
@@ -6797,10 +6882,12 @@ base class MCPServerWithTools extends MCPServer with ToolsSupport {
   String _serializeResult(dynamic result) {
     if (result == null) return 'null';
     try {
+      if (result is Map) return jsonEncode(result);
       if (result is List) {
         final items = result
             .map((e) {
               if (e == null) return null;
+              if (e is Map) return e;
               final toJson = e.toJson;
               if (toJson != null && toJson is Function) return toJson();
               return e.toString();

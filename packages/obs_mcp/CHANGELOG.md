@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+## 5.7.1+3
+
+* **Pana score 160/160**: Upgraded `easy_api_generator` to `^1.2.2` to fix lint warnings and formatting issues in the generated MCP dispatcher. The generated `obs_mcp_server.mcp.dart` now passes `dart analyze` and `dart format` with zero warnings.
+* **Skills**: Updated `obs-get-state/SKILL.md` to call `obs_video_settings` first and only fall back to `obs_canvases_list` when the v5.7.0+ canvas list shape is specifically required.
+* **Video settings**: New `video_settings` tool wraps the legacy `GetVideoSettings` request (available since OBS WebSocket v5.0). Returns `baseWidth`, `baseHeight`, `outputWidth`, `outputHeight`, `fpsNumerator`, and `fpsDenominator`. Use this on builds older than v5.7.0 where `canvases_list` errors out.
+
 ## 5.7.1+2
 
 * **Connection helpers**: New first-class tools so agents no longer have to script connection handling via `execute`

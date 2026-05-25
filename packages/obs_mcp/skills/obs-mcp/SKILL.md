@@ -1,6 +1,6 @@
 ---
 name: obs-mcp
-description: Control a running OBS Studio instance through the obs-mcp-stdio MCP server. Use when the user asks to connect to OBS, list or switch scenes, inspect or transform sources, control audio inputs, start/stop streaming or recording, trigger hotkeys, manage filters or transitions, or run any OBS WebSocket operation. Exposes 60+ tools via an `execute` + JavaScript invocation pattern.
+description: Control a running OBS Studio instance through the OBS MCP server. Use when the user asks to connect to OBS, list or switch scenes, inspect or transform sources, control audio inputs, start/stop streaming or recording, trigger hotkeys, manage filters or transitions, or run any OBS WebSocket operation. Exposes 60+ tools via an `execute` + JavaScript invocation pattern.
 ---
 
 # OBS MCP (obs-mcp-stdio)
@@ -104,6 +104,11 @@ The server exposes only **two** top-level tools: `search` and `execute`. All 60+
 const scenes = await call_tool('obs_scenes_list', {});
 return scenes;
 ```
+
+**Case-sensitivity rule**: OBS object names (scenes, sources, inputs, filters, transitions) are **strictly case-sensitive**. Always preserve the exact case:
+- When the user provides a name directly, use it exactly as given (do not alter case)
+- When you retrieve a name from OBS (via `obs_scenes_list`, `obs_inputs_list`, etc.), use the exact case returned
+- Never normalize, lowercase, or capitalize object names when passing them to OBS tools
 
 Rules:
 - Every OBS call is `await call_tool('<tool_name>', { ...params })`.
@@ -385,7 +390,10 @@ await call_tool('obs_general_trigger_hotkey', { hotkeyName: 'OBSBasic.StartRecor
 
 1. **Keep scripts short and simple.** Accessing nested properties from tool call results (e.g., `items[0].sceneItemTransform.width`) frequently causes silent errors. Complex scripts with multiple tool calls and control flow often fail. Split operations into multiple small `execute` calls rather than one large script.
 
-2. **Source names are case-sensitive.** `inputName: 'Input'` and `inputName: 'input'` are different sources. Always verify the exact source name via `obs_inputs_list` or `obs_scene_items_list`.
+2. **Object names are strictly case-sensitive.** `sceneName: 'Main'` and `sceneName: 'main'` are different scenes. `inputName: 'Mic'` and `inputName: 'mic'` are different inputs. Always use the exact case:
+   - **User-provided names**: Use exactly as the user typed them (do not alter case)
+   - **OBS-returned names**: Use the exact case from `obs_scenes_list`, `obs_inputs_list`, etc.
+   - Never normalize, lowercase, title-case, or otherwise modify object names
 
 3. **Reading dimensions after text/settings changes requires a separate call.** After updating text via `obs_inputs_set_settings`, the source dimensions change. You must call `obs_scene_items_list` again in a **separate** `execute` invocation to get the updated width/height. Doing it in the same script often returns stale or null values.
 

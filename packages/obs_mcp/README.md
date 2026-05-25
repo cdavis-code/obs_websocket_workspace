@@ -105,7 +105,7 @@ All tools are prefixed with `obs_` and organized into the following groups:
 | **UI** | `ui_studio_mode_enabled`, `ui_set_studio_mode`, `ui_open_input_properties/filters/interact`, `ui_monitor_list` | Toggle Studio Mode, open input dialogs, list monitors |
 | **Transitions** | `transitions_trigger_studio`, `transitions_kind_list`, `transitions_scene_list`, `transitions_get_current`, `transitions_set_current`, `transitions_set_duration`, `transitions_set_settings`, `transitions_get_cursor`, `transitions_set_tbar` | Manage scene transitions: list kinds, configure current transition, T-Bar control |
 | **Filters** | `filters_kind_list`, `filters_list`, `filters_default_settings`, `filters_create`, `filters_remove`, `filters_rename`, `filters_get`, `filters_set_index`, `filters_set_settings`, `filters_set_enabled` | Manage source filters: create, remove, configure, and reorder |
-| **Canvases** | `canvases_list` | List canvases configured in OBS (v5.7.0+) |
+| **Canvases** | `canvases_list`, `video_settings` | List canvases configured in OBS (v5.7.0+) and read base/output dimensions + FPS via the legacy `GetVideoSettings` request that works on every v5+ build |
 
 Code mode is enabled, providing sandbox execution via a search/execute tool pair.
 

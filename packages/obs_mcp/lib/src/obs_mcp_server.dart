@@ -1817,6 +1817,15 @@ class ObsMcpServer {
   Future<Map<String, dynamic>> canvasesList() async =>
       (await _obs.canvas.getCanvasList()).toJson();
 
+  /// Returns the canvas video settings (base/output dimensions and FPS).
+  @Tool(
+    name: 'video_settings',
+    description:
+        'Return base/output canvas dimensions and FPS via the legacy GetVideoSettings request. Works on every OBS WebSocket v5+ build (use this on builds older than v5.7.0 where canvases_list errors).',
+  )
+  Future<Map<String, dynamic>> videoSettings() async =>
+      (await _obs.config.getVideoSettings()).toJson();
+
   // ---------------------------------------------------------------------------
   // Filters (New in OBS WebSocket v5.7.0 MCP exposure)
   // ---------------------------------------------------------------------------
