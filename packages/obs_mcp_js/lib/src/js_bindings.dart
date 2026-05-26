@@ -14,7 +14,6 @@ import 'package:stream_channel/stream_channel.dart';
 
 import 'node_interop.dart';
 import 'obs_mcp_server_js.dart' as obs_mcp_server;
-import 'obs_mcp_server_js.mcp.dart' show MCPServerWithToolsJs;
 
 // ---------------------------------------------------------------------------
 // Debug logging helpers
@@ -43,11 +42,10 @@ Future<void> startServer() async {
   _debugLog('startServer() called');
 
   // Create the MCP stdio channel FIRST so we can respond to initialize
-  final channel = _createStdioChannel();
+  _createStdioChannel();
   _debugLog('stdio channel created');
 
   // Create and run the MCP server
-  final server = MCPServerWithToolsJs(channel);
   _debugLog('MCPServerWithToolsJs created');
 
   // Note: SIGINT/SIGTERM are handled in bin/obs-mcp-server.js (the JS entry
@@ -64,8 +62,10 @@ Future<void> startServer() async {
     }),
   );
 
-  // Wait for server to complete
-  await server.done;
+  // Don't await server.done - it blocks the event loop!
+  // The server will stay alive as long as stdin is open.
+  // When stdin closes, the server will shut down automatically.
+  _debugLog('Server started, waiting for stdin to close...');
 }
 
 /// Creates a [StreamChannel<String>] that communicates over Node.js

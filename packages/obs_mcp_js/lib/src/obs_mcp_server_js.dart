@@ -14,6 +14,37 @@ import 'package:obs_websocket/obs_websocket.dart';
 
 import 'animation_helpers.dart';
 import 'node_interop.dart';
+import 'tool_registry.dart';
+
+/// Dispatch function signature for tool handlers.
+/// Receives the raw arguments map (from the MCP request) and an [ObsMcpServer]
+/// instance to call methods on.
+typedef ToolDispatchFn =
+    FutureOr<dynamic> Function(Map<String, dynamic>? args, ObsMcpServer server);
+
+/// Registry entry that pairs tool metadata with its dispatch handler.
+///
+/// Every OBS WebSocket tool is defined here. The [MCPServerWithToolsJs] in
+/// `obs_mcp_server_js.mcp.dart` pulls specs and dispatch from this registry.
+class ToolDef {
+  final String name;
+  final String description;
+  final List<Map<String, dynamic>> parameters;
+  final ToolDispatchFn dispatch;
+
+  ToolDef({
+    required this.name,
+    required this.description,
+    this.parameters = const [],
+    required this.dispatch,
+  });
+
+  Map<String, dynamic> toSpec() => <String, dynamic>{
+    'name': name,
+    'description': description,
+    'parameters': parameters,
+  };
+}
 
 /// Unified MCP facade exposing the OBS WebSocket v5 protocol as tools.
 class ObsMcpServer {
@@ -23,6 +54,11 @@ class ObsMcpServer {
 
   static ObsWebSocket? _client;
   static String? _bootstrapError;
+
+  /// Single source of truth for all tool definitions.
+  /// Consumed by [MCPServerWithToolsJs] in `obs_mcp_server_js.mcp.dart`.
+  static final List<ToolDef> toolDefs = buildRegistry();
+
   static const Map<String, dynamic> _ok = <String, dynamic>{'ok': true};
 
   static ObsWebSocket get _obs {
@@ -284,6 +320,38 @@ class ObsMcpServer {
     return _ok;
   }
 
+  Future<Map<String, dynamic>> scenesRemove(String sceneName) async {
+    await _obs.scenes.removeScene(sceneName);
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> scenesSetName(String sceneName) async {
+    await _obs.scenes.setSceneName(sceneName);
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> scenesGetSceneTransitionOverride(
+    String sceneName,
+  ) async {
+    final response = await _obs.scenes.getSceneSceneTransitionOverride(
+      sceneName,
+    );
+    return response.toJson();
+  }
+
+  Future<Map<String, dynamic>> scenesSetSceneTransitionOverride(
+    String sceneName, {
+    String? transitionName,
+    int? transitionDuration,
+  }) async {
+    await _obs.scenes.setSceneSceneTransitionOverride(
+      sceneName,
+      transitionName: transitionName,
+      transitionDuration: transitionDuration,
+    );
+    return _ok;
+  }
+
   // ---------------------------------------------------------------------------
   // Scene Items
   // ---------------------------------------------------------------------------
@@ -485,6 +553,54 @@ class ObsMcpServer {
       sceneUuid: sceneUuid,
       sceneItemId: sceneItemId,
       sceneItemSettings: sceneItemSettings,
+    );
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> sceneItemsGetIndex({
+    required String sceneName,
+    required int sceneItemId,
+  }) async {
+    final index = await _obs.sceneItems.getSceneItemIndex(
+      sceneName: sceneName,
+      sceneItemId: sceneItemId,
+    );
+    return <String, dynamic>{'sceneItemIndex': index};
+  }
+
+  Future<Map<String, dynamic>> sceneItemsSetIndex({
+    required String sceneName,
+    required int sceneItemId,
+    required int sceneItemIndex,
+  }) async {
+    await _obs.sceneItems.setSceneItemIndex(
+      sceneName: sceneName,
+      sceneItemId: sceneItemId,
+      sceneItemIndex: sceneItemIndex,
+    );
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> sceneItemsGetBlendMode({
+    required String sceneName,
+    required int sceneItemId,
+  }) async {
+    final mode = await _obs.sceneItems.getSceneItemBlendMode(
+      sceneName: sceneName,
+      sceneItemId: sceneItemId,
+    );
+    return <String, dynamic>{'sceneItemBlendMode': mode};
+  }
+
+  Future<Map<String, dynamic>> sceneItemsSetBlendMode({
+    required String sceneName,
+    required int sceneItemId,
+    required String sceneItemBlendMode,
+  }) async {
+    await _obs.sceneItems.setSceneItemBlendMode(
+      sceneName: sceneName,
+      sceneItemId: sceneItemId,
+      sceneItemBlendMode: sceneItemBlendMode,
     );
     return _ok;
   }
@@ -853,6 +969,18 @@ class ObsMcpServer {
     return _ok;
   }
 
+  Future<Map<String, dynamic>> recordSplitFile() async {
+    await _obs.record.splitRecordFile();
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> recordCreateChapter({
+    String? chapterName,
+  }) async {
+    await _obs.record.createRecordChapter(chapterName: chapterName);
+    return _ok;
+  }
+
   // ---------------------------------------------------------------------------
   // Outputs
   // ---------------------------------------------------------------------------
@@ -938,6 +1066,111 @@ class ObsMcpServer {
   Future<Map<String, dynamic>> configStreamServiceSettings() async =>
       (await _obs.config.getStreamServiceSettings()).toJson();
 
+  Future<Map<String, dynamic>> configGetPersistentData({
+    required String realm,
+    required String slotName,
+  }) async =>
+      await _obs.config.getPersistentData(realm: realm, slotName: slotName);
+
+  Future<Map<String, dynamic>> configSetPersistentData({
+    required String realm,
+    required String slotName,
+    required dynamic slotValue,
+  }) async {
+    await _obs.config.setPersistentData(
+      realm: realm,
+      slotName: slotName,
+      slotValue: slotValue,
+    );
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> configSceneCollectionList() async =>
+      (await _obs.config.getSceneCollectionList()).toJson();
+
+  Future<Map<String, dynamic>> configSetCurrentSceneCollection(
+    String sceneCollectionName,
+  ) async {
+    await _obs.config.setCurrentSceneCollection(sceneCollectionName);
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> configCreateSceneCollection(
+    String sceneCollectionName,
+  ) async {
+    await _obs.config.createSceneCollection(sceneCollectionName);
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> configProfileList() async =>
+      (await _obs.config.getProfileList()).toJson();
+
+  Future<Map<String, dynamic>> configSetCurrentProfile(
+    String profileName,
+  ) async {
+    await _obs.config.setCurrentProfile(profileName);
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> configCreateProfile(String profileName) async {
+    await _obs.config.createProfile(profileName);
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> configRemoveProfile(String profileName) async {
+    await _obs.config.removeProfile(profileName);
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> configGetProfileParameter({
+    required String parameterCategory,
+    required String parameterName,
+  }) async {
+    final response = await _obs.config.getProfileParameter(
+      parameterCategory: parameterCategory,
+      parameterName: parameterName,
+    );
+    return response.toJson();
+  }
+
+  Future<Map<String, dynamic>> configSetProfileParameter({
+    required String parameterCategory,
+    required String parameterName,
+    required String parameterValue,
+  }) async {
+    await _obs.config.setProfileParameter(
+      parameterCategory: parameterCategory,
+      parameterName: parameterName,
+      parameterValue: parameterValue,
+    );
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> configSetVideoSettings(
+    VideoSettings videoSettings,
+  ) async {
+    await _obs.config.setVideoSettings(videoSettings);
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> configSetStreamServiceSettings({
+    required String streamServiceType,
+    required Map<String, dynamic> streamServiceSettings,
+  }) async {
+    await _obs.config.setStreamServiceSettings(
+      streamServiceType: streamServiceType,
+      streamServiceSettings: streamServiceSettings,
+    );
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> configSetRecordDirectory(
+    String recordDirectory,
+  ) async {
+    await _obs.config.setRecordDirectory(recordDirectory);
+    return _ok;
+  }
+
   // ---------------------------------------------------------------------------
   // UI
   // ---------------------------------------------------------------------------
@@ -967,6 +1200,32 @@ class ObsMcpServer {
   Future<List<Map<String, dynamic>>> uiMonitorList() async {
     final monitors = await _obs.ui.getMonitorList();
     return monitors.map((e) => e.toJson()).toList();
+  }
+
+  Future<Map<String, dynamic>> uiOpenVideoMixProjector(
+    String videoMixType, {
+    int? monitorIndex,
+    String? projectorGeometry,
+  }) async {
+    await _obs.ui.openVideoMixProjector(
+      videoMixType,
+      monitorIndex: monitorIndex,
+      projectorGeometry: projectorGeometry,
+    );
+    return _ok;
+  }
+
+  Future<Map<String, dynamic>> uiOpenSourceProjector(
+    String sourceName, {
+    int? monitorIndex,
+    String? projectorGeometry,
+  }) async {
+    await _obs.ui.openSourceProjector(
+      sourceName,
+      monitorIndex: monitorIndex,
+      projectorGeometry: projectorGeometry,
+    );
+    return _ok;
   }
 
   // ---------------------------------------------------------------------------
@@ -1154,6 +1413,9 @@ class ObsMcpServer {
 
   Future<Map<String, dynamic>> canvasesList() async =>
       (await _obs.canvas.getCanvasList()).toJson();
+
+  Future<Map<String, dynamic>> videoSettings() async =>
+      (await _obs.config.getVideoSettings()).toJson();
 
   // ---------------------------------------------------------------------------
   // Filters
