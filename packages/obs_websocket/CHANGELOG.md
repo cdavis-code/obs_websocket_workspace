@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.7.0+4
+
+* Version bump
+
 ## 5.7.0+3
 
 * **New typed transform model**
