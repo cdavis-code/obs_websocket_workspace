@@ -1,6 +1,6 @@
 name: obs_mcp_js
 description: OBS Studio MCP server compiled to JavaScript for Node.js execution via npx.
-version: 5.7.1+1
+version: 5.7.5
 publish_to: none
 resolution: workspace
 

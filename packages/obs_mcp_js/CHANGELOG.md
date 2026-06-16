@@ -1,5 +1,29 @@
 # Changelog
 
+## [5.7.5] - 2026-05-26
+
+### Changed
+- **Registry-driven architecture**: Replaced hardcoded tool specs and switch/case dispatch with a centralized registry-driven `ToolDef` pattern
+- Extracted tool definitions into dedicated `tool_registry.dart` for improved maintainability and extensibility
+- Simplified server architecture by removing redundant handler methods
+- Updated `bin/obs-mcp-server.js` with a cleaner Node.js wrapper structure
+- Updated `build.sh` to support the new build pipeline
+- Cleaned up unused files (removed `stderr.log`)
+
+## 5.7.4
+
+### Added
+- Added `PUBLISHING.md` with npm release documentation
+
+### Changed
+- Bumped `ws` dependency from 8.20.0 to 8.20.1 (resolves uninitialized memory disclosure)
+- Fixed `bin` path consistency in `package.json` (`./bin/` → `bin/`)
+
+## 5.7.2
+
+### Added
+- Added `repository` and `homepage` fields to `package.json` for npm provenance
+
 ## 5.7.1+1
 
 ### Added

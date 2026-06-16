@@ -1,6 +1,6 @@
 {
   "name": "@unngh/obs-mcp",
-  "version": "5.7.4",
+  "version": "5.7.5",
   "description": "MCP server for controlling OBS Studio via obs-websocket v5.x protocol. Compiled from Dart to JavaScript.",
   "type": "module",
   "bin": {
