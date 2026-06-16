@@ -1,4 +1,4 @@
-# obs_websocket_js
+# obs_websocket
 
 ![obs_websocket_js Banner](https://raw.githubusercontent.com/cdavis-code/obs_websocket_workspace/main/packages/obs_websocket_js/image/banner.svg)
 

@@ -1,6 +1,6 @@
 {
   "name": "@unngh/obs-websocket",
-  "version": "5.7.0+3",
+  "version": "5.7.1",
   "description": "JavaScript/TypeScript bindings for the obs_websocket Dart package. Universal (browser + Node.js) client for the OBS Studio obs-websocket v5 plugin.",
   "license": "MIT",
   "author": "Chris Davis",

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to publish a new version of @unngh/obs-websocket-js to npm
+# Script to publish a new version of @unngh/obs-websocket to npm
 # Usage: ./scripts/publish-npm.sh [major|minor|patch|version]
 
 set -e
