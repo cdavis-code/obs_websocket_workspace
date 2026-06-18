@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 5.7.1+4
+
+* **Homebrew installation**: Added pre-built binary distribution via Homebrew (`brew tap cdavis-code/obs-websocket && brew install obs-mcp`), no Dart SDK required
+* **README**: Restructured Quick Start with dedicated Homebrew option, expanded Table of Contents, added Contributing section
+* **Dependency**: Bumped `obs_websocket` to `5.7.0+4`
+
 ## 5.7.1+3
 
 * **Pana score 160/160**: Upgraded `easy_api_generator` to `^1.2.2` to fix lint warnings and formatting issues in the generated MCP dispatcher. The generated `obs_mcp_server.mcp.dart` now passes `dart analyze` and `dart format` with zero warnings.

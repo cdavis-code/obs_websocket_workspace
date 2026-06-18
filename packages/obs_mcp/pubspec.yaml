@@ -1,5 +1,5 @@
 name: obs_mcp
-version: 5.7.1+3
+version: 5.7.1+4
 description: MCP server for controlling OBS Studio via the obs-websocket v5.x protocol.
 homepage: https://github.com/cdavis-code/obs_websocket_workspace
 repository: https://github.com/cdavis-code/obs_websocket_workspace/tree/main/packages/obs_mcp
@@ -21,7 +21,7 @@ executables:
   obs_mcp: obs_mcp_server
 
 dependencies:
-  obs_websocket: ^5.7.0+3
+  obs_websocket: 5.7.0+4
   easy_api_annotations: ^1.2.2
   dart_mcp: ^0.5.1
 

@@ -70,7 +70,7 @@ export OBS_WEBSOCKET_URL=ws://localhost:4455
 export OBS_WEBSOCKET_PASSWORD=your-password
 ```
 
-That's it! Configure your AI agent using one of the [MCP Host Configuration](#mcp-host-configuration) examples below, and the agent will launch the server automatically.
+That's it! Configure your AI agent to use the `obs_mcp` command, and the agent will launch the server automatically.
 
 ### Option 2: Homebrew (macOS / Linux)
 
@@ -88,7 +88,7 @@ export OBS_WEBSOCKET_URL=ws://localhost:4455
 export OBS_WEBSOCKET_PASSWORD=your-password
 ```
 
-Then point your MCP host at the `obs-mcp` command (instead of `obs_mcp`) in the [MCP Host Configuration](#mcp-host-configuration) examples below.
+Then point your MCP host at the `obs-mcp` command (instead of `obs_mcp`).
 
 ## Code Mode
 

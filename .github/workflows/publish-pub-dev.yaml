@@ -1,22 +1,74 @@
 name: Publish to pub.dev
 
-# Publishes obs_cli to pub.dev when a version tag is pushed.
-# Uses OIDC authentication — no token secrets required.
-# Runs in parallel with homebrew-release.yaml and homebrew-formula-update.yaml.
+# Publishes the package whose version matches the pushed tag.
+# Supports obs_cli and obs_mcp. Uses OIDC authentication — no token secrets required.
+#
+# For workflow_dispatch, you can explicitly specify which package to publish.
 #
 # Prerequisites on pub.dev:
-#   - Enable "Publishing from push events (tags)" at https://pub.dev/packages/obs_cli/admin
+#   - Enable "Publishing from push events (tags)" at
+#     https://pub.dev/packages/<package-name>/admin
 
 on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+*'
   workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package to publish'
+        required: true
+        type: choice
+        options:
+          - obs_cli
+          - obs_mcp
 
 jobs:
+  detect:
+    name: Detect package from tag
+    runs-on: ubuntu-latest
+    outputs:
+      working-dir: ${{ steps.match.outputs.working-dir }}
+      package-name: ${{ steps.match.outputs.package-name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Match tag to package
+        id: match
+        run: |
+          if [ -n "${{ github.event.inputs.package }}" ]; then
+            # workflow_dispatch with explicit package
+            PKG="${{ github.event.inputs.package }}"
+            echo "working-dir=packages/$PKG" >> "$GITHUB_OUTPUT"
+            echo "package-name=$PKG" >> "$GITHUB_OUTPUT"
+            echo "Using explicit package: $PKG"
+            exit 0
+          fi
+
+          # Tag push — match tag version against each package's pubspec.yaml
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "Tag version: $TAG"
+
+          for PKG in obs_cli obs_mcp; do
+            PKG_VER=$(grep '^version: ' "packages/$PKG/pubspec.yaml" | awk '{print $2}')
+            echo "  $PKG: $PKG_VER"
+            if [ "$TAG" = "$PKG_VER" ]; then
+              echo "working-dir=packages/$PKG" >> "$GITHUB_OUTPUT"
+              echo "package-name=$PKG" >> "$GITHUB_OUTPUT"
+              echo "Detected: $PKG v$PKG_VER matches tag $GITHUB_REF_NAME"
+              exit 0
+            fi
+          done
+
+          echo "::error::No package found with version matching tag $GITHUB_REF_NAME"
+          echo "Packages checked: obs_cli, obs_mcp"
+          exit 1
+
   publish:
+    name: Publish ${{ needs.detect.outputs.package-name }}
+    needs: detect
     permissions:
       id-token: write # Required for OIDC authentication with pub.dev
     uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
     with:
-      working-directory: packages/obs_cli
+      working-directory: ${{ needs.detect.outputs.working-dir }}

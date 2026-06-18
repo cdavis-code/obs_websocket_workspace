@@ -6,26 +6,34 @@
 class ObsMcp < Formula
   desc "MCP server for controlling OBS Studio via the obs-websocket v5.x protocol"
   homepage "https://github.com/cdavis-code/obs_websocket_workspace"
-  version "5.7.1+3"
+  version "5.7.1+4"
   license "MIT"
 
-  url "https://github.com/cdavis-code/obs_websocket_workspace/archive/refs/tags/v5.7.1+3.tar.gz"
-  sha256 "3a98c876628169633b7a1857ad499cf4ebab360b8b6cbce6c4845d84d95738db"
+  on_macos do
+    if Hardware::CPU.arm?
+      url "https://github.com/cdavis-code/obs_websocket_workspace/releases/download/v#{version}/obs-mcp-darwin-arm64"
+      sha256 "ARM64_MACOS_SHA256"
+    else
+      url "https://github.com/cdavis-code/obs_websocket_workspace/releases/download/v#{version}/obs-mcp-darwin-amd64"
+      sha256 "AMD64_MACOS_SHA256"
+    end
+  end
+
+  on_linux do
+    if Hardware::CPU.arm?
+      url "https://github.com/cdavis-code/obs_websocket_workspace/releases/download/v#{version}/obs-mcp-linux-arm64"
+      sha256 "ARM64_LINUX_SHA256"
+    else
+      url "https://github.com/cdavis-code/obs_websocket_workspace/releases/download/v#{version}/obs-mcp-linux-amd64"
+      sha256 "AMD64_LINUX_SHA256"
+    end
+  end
 
   # Development / HEAD install: brew install --head obs-mcp
   head "https://github.com/cdavis-code/obs_websocket_workspace.git", branch: "main"
 
-  depends_on "dart-sdk" => :build
-
   def install
-    cd "packages/obs_mcp" do
-      inreplace "pubspec.yaml", "resolution: workspace\n", ""
-      system "dart", "pub", "get"
-      system "dart", "compile", "exe",
-             "bin/obs_mcp_server.dart",
-             "-o", "obs-mcp"
-      bin.install "obs-mcp"
-    end
+    bin.install Dir["*"].first => "obs-mcp"
   end
 
   test do

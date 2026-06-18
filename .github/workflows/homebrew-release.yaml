@@ -59,14 +59,23 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
-      - name: Compile binary
+      - name: Compile obs-cli binary
         run: dart compile exe packages/obs_cli/bin/obs.dart -o obs-cli-${{ matrix.target }}${{ matrix.binary-ext }}
 
-      - name: Upload artifact
+      - name: Compile obs-mcp binary
+        run: dart compile exe packages/obs_mcp/bin/obs_mcp_server.dart -o obs-mcp-${{ matrix.target }}${{ matrix.binary-ext }}
+
+      - name: Upload obs-cli artifact
         uses: actions/upload-artifact@v4
         with:
           name: obs-cli-${{ matrix.target }}
           path: obs-cli-${{ matrix.target }}${{ matrix.binary-ext }}
+
+      - name: Upload obs-mcp artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: obs-mcp-${{ matrix.target }}
+          path: obs-mcp-${{ matrix.target }}${{ matrix.binary-ext }}
 
   release:
     name: Create GitHub Release
@@ -83,15 +92,23 @@ jobs:
       - name: Prepare binaries for release
         run: |
           mkdir -p release
-          # macOS
+          # obs-cli: macOS
           cp artifacts/obs-cli-macos-arm64/obs-cli-macos-arm64 release/obs-cli-darwin-arm64
           cp artifacts/obs-cli-macos-x64/obs-cli-macos-x64 release/obs-cli-darwin-amd64
-          # Linux
+          # obs-cli: Linux
           cp artifacts/obs-cli-linux-x64/obs-cli-linux-x64 release/obs-cli-linux-amd64
           cp artifacts/obs-cli-linux-arm64/obs-cli-linux-arm64 release/obs-cli-linux-arm64
-          # Windows (dart compile exe auto-appends .exe on Windows)
+          # obs-cli: Windows (dart compile exe auto-appends .exe on Windows)
           cp artifacts/obs-cli-windows-x64/obs-cli-windows-x64.exe release/obs-cli-windows-amd64.exe
-          chmod +x release/obs-cli-darwin-* release/obs-cli-linux-*
+          # obs-mcp: macOS
+          cp artifacts/obs-mcp-macos-arm64/obs-mcp-macos-arm64 release/obs-mcp-darwin-arm64
+          cp artifacts/obs-mcp-macos-x64/obs-mcp-macos-x64 release/obs-mcp-darwin-amd64
+          # obs-mcp: Linux
+          cp artifacts/obs-mcp-linux-x64/obs-mcp-linux-x64 release/obs-mcp-linux-amd64
+          cp artifacts/obs-mcp-linux-arm64/obs-mcp-linux-arm64 release/obs-mcp-linux-arm64
+          # obs-mcp: Windows (dart compile exe auto-appends .exe on Windows)
+          cp artifacts/obs-mcp-windows-x64/obs-mcp-windows-x64.exe release/obs-mcp-windows-amd64.exe
+          chmod +x release/obs-cli-darwin-* release/obs-cli-linux-* release/obs-mcp-darwin-* release/obs-mcp-linux-*
 
       - name: Generate SHA256 checksums
         run: |
@@ -109,6 +126,11 @@ jobs:
             release/obs-cli-linux-amd64
             release/obs-cli-linux-arm64
             release/obs-cli-windows-amd64.exe
+            release/obs-mcp-darwin-arm64
+            release/obs-mcp-darwin-amd64
+            release/obs-mcp-linux-amd64
+            release/obs-mcp-linux-arm64
+            release/obs-mcp-windows-amd64.exe
             release/checksums.txt
           generate_release_notes: true
           draft: false
