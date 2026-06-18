@@ -6,7 +6,7 @@
 class ObsMcp < Formula
   desc "MCP server for controlling OBS Studio via the obs-websocket v5.x protocol"
   homepage "https://github.com/cdavis-code/obs_websocket_workspace"
-  version "5.7.1+4"
+  version "5.7.2"
   license "MIT"
 
   on_macos do

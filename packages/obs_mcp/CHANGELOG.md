@@ -2,20 +2,11 @@
 
 ## Unreleased
 
-## 5.7.1+4
+## 5.7.2
 
 * **Homebrew installation**: Added pre-built binary distribution via Homebrew (`brew tap cdavis-code/obs-websocket && brew install obs-mcp`), no Dart SDK required
 * **README**: Restructured Quick Start with dedicated Homebrew option, expanded Table of Contents, added Contributing section
-* **Dependency**: Bumped `obs_websocket` to `5.7.0+4`
-
-## 5.7.1+3
-
-* **Pana score 160/160**: Upgraded `easy_api_generator` to `^1.2.2` to fix lint warnings and formatting issues in the generated MCP dispatcher. The generated `obs_mcp_server.mcp.dart` now passes `dart analyze` and `dart format` with zero warnings.
-* **Skills**: Updated `obs-get-state/SKILL.md` to call `obs_video_settings` first and only fall back to `obs_canvases_list` when the v5.7.0+ canvas list shape is specifically required.
-* **Video settings**: New `video_settings` tool wraps the legacy `GetVideoSettings` request (available since OBS WebSocket v5.0). Returns `baseWidth`, `baseHeight`, `outputWidth`, `outputHeight`, `fpsNumerator`, and `fpsDenominator`. Use this on builds older than v5.7.0 where `canvases_list` errors out.
-
-## 5.7.1+2
-
+* **Dependency**: Bumped `obs_websocket` to `^5.7.0+4`; requires `^5.7.0+3` for the typed transform model and connection helpers
 * **Connection helpers**: New first-class tools so agents no longer have to script connection handling via `execute`
   * `connection_status` — reports current connection state (`connected`, `connecting`, `disconnected`, `reconnecting`, `failed`)
   * `connection_ping` — lightweight `GetVersion` heartbeat
@@ -29,13 +20,11 @@
 * **Client sleep**: `client_sleep` provides a server-side, non-OBS-blocking pause (1–25000 ms) for use between tool calls
 * **Full transform parameters**: `scene_items_set_transform` now accepts `alignment`, `boundsAlignment`, `boundsType`, `boundsWidth`, `boundsHeight`
 * **Auto-reconnect bootstrap**: MCP server constructs `ObsWebSocket` with `autoReconnect: true` so transient disconnects recover transparently
+* **Video settings**: New `video_settings` tool wraps the legacy `GetVideoSettings` request (available since OBS WebSocket v5.0). Returns `baseWidth`, `baseHeight`, `outputWidth`, `outputHeight`, `fpsNumerator`, and `fpsDenominator`. Use this on builds older than v5.7.0 where `canvases_list` errors out.
+* **Pana score 160/160**: Upgraded `easy_api_generator` to `^1.2.2` to fix lint warnings and formatting issues in the generated MCP dispatcher. The generated `obs_mcp_server.mcp.dart` now passes `dart analyze` and `dart format` with zero warnings.
+* **Skills**: Updated `obs-get-state/SKILL.md` to call `obs_video_settings` first and only fall back to `obs_canvases_list` when the v5.7.0+ canvas list shape is specifically required.
 * **Refactor**: Extracted easing / lerp / transform interpolation / event-subscription parsing into `lib/src/animation_helpers.dart` for testability
 * **Tests**: Added 14 unit tests covering animation helpers and event-subscription parsing
-* **Skills**: Updated SKILL.md tool catalog, workflows, and gotchas to document the new tools
-* **Dependency**: Requires `obs_websocket: ^5.7.0+3` for the new typed transform model and connection helpers
-
-## 5.7.1+1
-
 * **Documentation**: Improved README structure and clarity
   * Added Code Mode section with link to Cloudflare's code mode blog
   * Clarified that sample code in "What Can You Do?" is executed via the `execute` tool
