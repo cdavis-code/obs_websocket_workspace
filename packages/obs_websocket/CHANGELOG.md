@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.7.0+5
+
+* **Maintenance**
+  * Bumped dev dependencies (`build_runner` to `^2.16.1`, `json_serializable` to `^6.15.2`, `test` to `^1.33.0`)
+
 ## 5.7.0+4
 
 * Version bump

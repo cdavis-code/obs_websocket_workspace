@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 5.7.2+1
+
+* **Maintenance**
+  * Bumped dev dependencies (`build_runner` to `^2.16.1`, `test` to `^1.33.0`)
+
 ## 5.7.2
 
 * **Homebrew installation**: Added pre-built binary distribution via Homebrew (`brew tap cdavis-code/obs-websocket && brew install obs-mcp`), no Dart SDK required

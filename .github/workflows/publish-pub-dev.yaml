@@ -22,6 +22,7 @@ on:
         options:
           - obs_cli
           - obs_mcp
+          - obs_websocket
 
 jobs:
   detect:
@@ -49,7 +50,7 @@ jobs:
           TAG="${GITHUB_REF_NAME#v}"
           echo "Tag version: $TAG"
 
-          for PKG in obs_cli obs_mcp; do
+          for PKG in obs_websocket obs_cli obs_mcp; do
             PKG_VER=$(grep '^version: ' "packages/$PKG/pubspec.yaml" | awk '{print $2}')
             echo "  $PKG: $PKG_VER"
             if [ "$TAG" = "$PKG_VER" ]; then
@@ -61,7 +62,7 @@ jobs:
           done
 
           echo "::error::No package found with version matching tag $GITHUB_REF_NAME"
-          echo "Packages checked: obs_cli, obs_mcp"
+          echo "Packages checked: obs_websocket, obs_cli, obs_mcp"
           exit 1
 
   publish:

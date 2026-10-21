@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.7.0+3
+
+* **Maintenance**
+  * Bumped dev dependencies (`test` to `^1.33.0`)
+
 ## 5.7.0+2
 
 * **Bug Fixes**
