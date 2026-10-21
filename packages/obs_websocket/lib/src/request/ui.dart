@@ -121,17 +121,27 @@ class Ui {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> openSourceProjector(
-    String sourceName, {
+    String? sourceName, {
+    String? sourceUuid,
+    String? canvasUuid,
     int? monitorIndex = -1,
     String? projectorGeometry,
-  }) async => await obsWebSocket.sendRequest(
-    Request(
-      'OpenSourceProjector',
-      requestData: {
-        'sourceName': sourceName,
-        'monitorIndex': monitorIndex,
-        'projectorGeometry': projectorGeometry,
-      },
-    ),
-  );
+  }) async {
+    if (sourceName == null && sourceUuid == null) {
+      throw ArgumentError('sourceName or sourceUuid must be provided');
+    }
+
+    await obsWebSocket.sendRequest(
+      Request(
+        'OpenSourceProjector',
+        requestData: {
+          'sourceName': ?sourceName,
+          'sourceUuid': ?sourceUuid,
+          'canvasUuid': ?canvasUuid,
+          'monitorIndex': monitorIndex,
+          'projectorGeometry': projectorGeometry,
+        },
+      ),
+    );
+  }
 }

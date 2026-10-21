@@ -42,6 +42,7 @@ export 'src/model/response/input_settings_response.dart';
 export 'src/model/response/input.dart';
 export 'src/model/response/input_volume_response.dart';
 export 'src/model/response/integer_response.dart';
+export 'src/model/response/last_replay_buffer_replay_response.dart';
 export 'src/model/response/media_input_status_response.dart';
 export 'src/model/response/monitor_list_response.dart';
 export 'src/model/response/profile_list_response.dart';

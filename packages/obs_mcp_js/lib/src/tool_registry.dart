@@ -223,8 +223,12 @@ List<ToolDef> buildRegistry() => <ToolDef>[
     description: 'Set the name of a scene (rename).',
     parameters: [
       {'name': 'sceneName', 'type': 'string', 'required': true},
+      {'name': 'newSceneName', 'type': 'string', 'required': true},
     ],
-    dispatch: (args, s) => s.scenesSetName(args!['sceneName'] as String),
+    dispatch: (args, s) => s.scenesSetName(
+      args!['sceneName'] as String,
+      newSceneName: args['newSceneName'] as String,
+    ),
   ),
   ToolDef(
     name: 'obs_scenes_get_transition_override',

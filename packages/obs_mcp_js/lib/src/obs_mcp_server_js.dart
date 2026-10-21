@@ -325,8 +325,11 @@ class ObsMcpServer {
     return _ok;
   }
 
-  Future<Map<String, dynamic>> scenesSetName(String sceneName) async {
-    await _obs.scenes.setSceneName(sceneName);
+  Future<Map<String, dynamic>> scenesSetName(
+    String sceneName, {
+    required String newSceneName,
+  }) async {
+    await _obs.scenes.setSceneName(sceneName, newSceneName: newSceneName);
     return _ok;
   }
 

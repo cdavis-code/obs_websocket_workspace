@@ -6,7 +6,9 @@ part 'source_screenshot.g.dart';
 
 @JsonSerializable()
 class SourceScreenshot {
-  final String sourceName;
+  final String? sourceName;
+  final String? sourceUuid;
+  final String? canvasUuid;
   final String imageFormat;
   final String? imageFilePath;
   final int? imageWidth;
@@ -14,7 +16,9 @@ class SourceScreenshot {
   final int? imageCompressionQuality;
 
   SourceScreenshot({
-    required this.sourceName,
+    this.sourceName,
+    this.sourceUuid,
+    this.canvasUuid,
     required this.imageFormat,
     this.imageFilePath,
     this.imageWidth,

@@ -263,7 +263,7 @@ For any of the items that have an [x\] from the list below, a high level helper 
   - [x\] [StartReplayBuffer](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#startreplaybuffer) - Starts the replay buffer output.
   - [x\] [StopReplayBuffer](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#stopreplaybuffer) - Stops the replay buffer output.
   - [x\] [SaveReplayBuffer](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#savereplaybuffer) - Saves the contents of the replay buffer output.
-  - [ \] [GetLastReplayBufferReplay](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#getlastreplaybufferreplay)
+  - [x\] [GetLastReplayBufferReplay](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#getlastreplaybufferreplay) - Gets the filename of the last replay buffer save file.
   - [x\] [GetOutputList](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#getoutputlist) - Gets the list of available outputs.
   - [x\] [GetOutputStatus](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#getoutputstatus) - Gets the status of an output.
   - [x\] [ToggleOutput](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#toggleoutput) - Toggles the status of an output.
@@ -285,6 +285,8 @@ For any of the items that have an [x\] from the list below, a high level helper 
   - [x\] [ToggleRecordPause](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#togglerecordpause) - Toggles pause on the record output.
   - [x\] [PauseRecord](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#pauserecord) - Pauses the record output.
   - [x\] [ResumeRecord](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#resumerecord) - Resumes the record output.
+  - [x\] [SplitRecordFile](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#splitrecordfile) - Splits the current file being recorded into a new file.
+  - [x\] [CreateRecordChapter](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#createrecordchapter) - Adds a new chapter marker to the file currently being recorded.
 - [Media Inputs Requests](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#media-inputs-1-requests) - `obsWebSocket.mediaInputs`
   - [x\] [GetMediaInputStatus](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#getmediainputstatus)
   - [x\] [SetMediaInputCursor](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#setmediainputcursor) - Sets the cursor position of a media input.

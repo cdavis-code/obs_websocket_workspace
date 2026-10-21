@@ -7,15 +7,23 @@ class SceneItems {
 
   SceneItems(this.obsWebSocket);
 
-  /// Gets a list of all scene items in a scene.
-  ///
-  /// Scenes only
-  ///
-  /// - Complexity Rating: 3/5
-  /// - Latest Supported RPC Version: 1
-  /// - Added in v5.0.0
-  Future<List<SceneItemDetail>> getSceneItemList(String sceneName) async =>
-      await list(sceneName);
+  /// Builds and validates the scene identifier fields shared by all scene
+  /// item requests. One of [sceneName] or [sceneUuid] is required.
+  Map<String, dynamic> _sceneData(
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
+  ) {
+    if (sceneName == null && sceneUuid == null) {
+      throw ArgumentError('sceneName or sceneUuid must be provided');
+    }
+
+    return {
+      'sceneName': ?sceneName,
+      'sceneUuid': ?sceneUuid,
+      'canvasUuid': ?canvasUuid,
+    };
+  }
 
   /// Gets a list of all scene items in a scene.
   ///
@@ -24,9 +32,30 @@ class SceneItems {
   /// - Complexity Rating: 3/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<List<SceneItemDetail>> list(String sceneName) async {
+  Future<List<SceneItemDetail>> getSceneItemList(
+    String? sceneName, {
+    String? sceneUuid,
+    String? canvasUuid,
+  }) async =>
+      await list(sceneName, sceneUuid: sceneUuid, canvasUuid: canvasUuid);
+
+  /// Gets a list of all scene items in a scene.
+  ///
+  /// Scenes only
+  ///
+  /// - Complexity Rating: 3/5
+  /// - Latest Supported RPC Version: 1
+  /// - Added in v5.0.0
+  Future<List<SceneItemDetail>> list(
+    String? sceneName, {
+    String? sceneUuid,
+    String? canvasUuid,
+  }) async {
     final response = await obsWebSocket.sendRequest(
-      Request('GetSceneItemList', requestData: {'sceneName': sceneName}),
+      Request(
+        'GetSceneItemList',
+        requestData: _sceneData(sceneName, sceneUuid, canvasUuid),
+      ),
     );
 
     final sceneItemListResponse = SceneItemListResponse.fromJson(
@@ -45,8 +74,12 @@ class SceneItems {
   /// - Complexity Rating: 3/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<List<SceneItemDetail>> getGroupSceneItemList(String sceneName) async =>
-      await groupList(sceneName);
+  Future<List<SceneItemDetail>> getGroupSceneItemList(
+    String? sceneName, {
+    String? sceneUuid,
+    String? canvasUuid,
+  }) async =>
+      await groupList(sceneName, sceneUuid: sceneUuid, canvasUuid: canvasUuid);
 
   /// Basically GetSceneItemList, but for groups.
   ///
@@ -57,9 +90,16 @@ class SceneItems {
   /// - Complexity Rating: 3/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<List<SceneItemDetail>> groupList(String sceneName) async {
+  Future<List<SceneItemDetail>> groupList(
+    String? sceneName, {
+    String? sceneUuid,
+    String? canvasUuid,
+  }) async {
     final response = await obsWebSocket.sendRequest(
-      Request('GetGroupSceneItemList', requestData: {'sceneName': sceneName}),
+      Request(
+        'GetGroupSceneItemList',
+        requestData: _sceneData(sceneName, sceneUuid, canvasUuid),
+      ),
     );
 
     final sceneItemListResponse = SceneItemListResponse.fromJson(
@@ -77,11 +117,15 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<int> getId({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required String sourceName,
     int? searchOffset,
   }) async => await getSceneItemId(
     sceneName: sceneName,
+    sceneUuid: sceneUuid,
+    canvasUuid: canvasUuid,
     sourceName: sourceName,
     searchOffset: searchOffset,
   );
@@ -94,7 +138,9 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<int> getSceneItemId({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required String sourceName,
     int? searchOffset,
   }) async {
@@ -102,7 +148,7 @@ class SceneItems {
       Request(
         'GetSceneItemId',
         requestData: {
-          'sceneName': sceneName,
+          ..._sceneData(sceneName, sceneUuid, canvasUuid),
           'sourceName': sourceName,
           'searchOffset': searchOffset,
         },
@@ -120,9 +166,16 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<bool> getSceneItemEnabled({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
-  }) async => getEnabled(sceneName: sceneName, sceneItemId: sceneItemId);
+  }) async => getEnabled(
+    sceneName: sceneName,
+    sceneUuid: sceneUuid,
+    canvasUuid: canvasUuid,
+    sceneItemId: sceneItemId,
+  );
 
   /// Gets the enable state of a scene item.
   ///
@@ -132,13 +185,18 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<bool> getEnabled({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
   }) async {
     final response = await obsWebSocket.sendRequest(
       Request(
         'GetSceneItemEnabled',
-        requestData: {'sceneName': sceneName, 'sceneItemId': sceneItemId},
+        requestData: {
+          ..._sceneData(sceneName, sceneUuid, canvasUuid),
+          'sceneItemId': sceneItemId,
+        },
       ),
     );
 
@@ -153,8 +211,14 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> setSceneItemEnabled(
-    SceneItemEnableStateChanged sceneItemEnableStateChanged,
-  ) async => setEnabled(sceneItemEnableStateChanged);
+    SceneItemEnableStateChanged sceneItemEnableStateChanged, {
+    String? sceneUuid,
+    String? canvasUuid,
+  }) async => setEnabled(
+    sceneItemEnableStateChanged,
+    sceneUuid: sceneUuid,
+    canvasUuid: canvasUuid,
+  );
 
   /// Sets the enable state of a scene item.
   ///
@@ -164,11 +228,17 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> setEnabled(
-    SceneItemEnableStateChanged sceneItemEnableStateChanged,
-  ) async => await obsWebSocket.sendRequest(
+    SceneItemEnableStateChanged sceneItemEnableStateChanged, {
+    String? sceneUuid,
+    String? canvasUuid,
+  }) async => await obsWebSocket.sendRequest(
     Request(
       'SetSceneItemEnabled',
-      requestData: sceneItemEnableStateChanged.toJson(),
+      requestData: {
+        ...sceneItemEnableStateChanged.toJson(),
+        'sceneUuid': ?sceneUuid,
+        'canvasUuid': ?canvasUuid,
+      },
     ),
   );
 
@@ -180,13 +250,18 @@ class SceneItems {
   /// Latest Supported RPC Version: 1
   /// Added in v5.0.0
   Future<bool> getSceneItemLocked({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
   }) async {
     final response = await obsWebSocket.sendRequest(
       Request(
         'GetSceneItemLocked',
-        requestData: {'sceneName': sceneName, 'sceneItemId': sceneItemId},
+        requestData: {
+          ..._sceneData(sceneName, sceneUuid, canvasUuid),
+          'sceneItemId': sceneItemId,
+        },
       ),
     );
 
@@ -201,10 +276,16 @@ class SceneItems {
   /// Latest Supported RPC Version: 1
   /// Added in v5.0.0
   Future<bool> getLocked({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
-  }) async =>
-      getSceneItemLocked(sceneName: sceneName, sceneItemId: sceneItemId);
+  }) async => getSceneItemLocked(
+    sceneName: sceneName,
+    sceneUuid: sceneUuid,
+    canvasUuid: canvasUuid,
+    sceneItemId: sceneItemId,
+  );
 
   /// Sets the lock state of a scene item.
   ///
@@ -214,14 +295,16 @@ class SceneItems {
   /// Latest Supported RPC Version: 1
   /// Added in v5.0.0
   Future<void> setSceneItemLocked({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
     required bool sceneItemLocked,
   }) async => await obsWebSocket.sendRequest(
     Request(
       'SetSceneItemLocked',
       requestData: {
-        'sceneName': sceneName,
+        ..._sceneData(sceneName, sceneUuid, canvasUuid),
         'sceneItemId': sceneItemId,
         'sceneItemLocked': sceneItemLocked,
       },
@@ -236,11 +319,15 @@ class SceneItems {
   /// Latest Supported RPC Version: 1
   /// Added in v5.0.0
   Future<void> setLocked({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
     required bool sceneItemLocked,
   }) async => setSceneItemLocked(
     sceneName: sceneName,
+    sceneUuid: sceneUuid,
+    canvasUuid: canvasUuid,
     sceneItemId: sceneItemId,
     sceneItemLocked: sceneItemLocked,
   );
@@ -255,13 +342,18 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<int> getSceneItemIndex({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
   }) async {
     final response = await obsWebSocket.sendRequest(
       Request(
         'GetSceneItemIndex',
-        requestData: {'sceneName': sceneName, 'sceneItemId': sceneItemId},
+        requestData: {
+          ..._sceneData(sceneName, sceneUuid, canvasUuid),
+          'sceneItemId': sceneItemId,
+        },
       ),
     );
 
@@ -278,9 +370,16 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<int> getIndex({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
-  }) async => getSceneItemIndex(sceneName: sceneName, sceneItemId: sceneItemId);
+  }) async => getSceneItemIndex(
+    sceneName: sceneName,
+    sceneUuid: sceneUuid,
+    canvasUuid: canvasUuid,
+    sceneItemId: sceneItemId,
+  );
 
   /// Sets the index position of a scene item in a scene.
   ///
@@ -290,14 +389,16 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> setSceneItemIndex({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
     required int sceneItemIndex,
   }) async => await obsWebSocket.sendRequest(
     Request(
       'SetSceneItemIndex',
       requestData: {
-        'sceneName': sceneName,
+        ..._sceneData(sceneName, sceneUuid, canvasUuid),
         'sceneItemId': sceneItemId,
         'sceneItemIndex': sceneItemIndex,
       },
@@ -312,11 +413,15 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> setIndex({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
     required int sceneItemIndex,
   }) async => setSceneItemIndex(
     sceneName: sceneName,
+    sceneUuid: sceneUuid,
+    canvasUuid: canvasUuid,
     sceneItemId: sceneItemId,
     sceneItemIndex: sceneItemIndex,
   );
@@ -329,13 +434,18 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<Map<String, dynamic>> getSceneItemTransform({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
   }) async {
     final response = await obsWebSocket.sendRequest(
       Request(
         'GetSceneItemTransform',
-        requestData: {'sceneName': sceneName, 'sceneItemId': sceneItemId},
+        requestData: {
+          ..._sceneData(sceneName, sceneUuid, canvasUuid),
+          'sceneItemId': sceneItemId,
+        },
       ),
     );
 
@@ -357,7 +467,9 @@ class SceneItems {
   /// (e.g. when sending future protocol fields not yet recognised by
   /// this package).
   Future<void> setSceneItemTransform({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
     required Map<String, dynamic> sceneItemTransform,
     bool validateKeys = true,
@@ -369,7 +481,7 @@ class SceneItems {
       Request(
         'SetSceneItemTransform',
         requestData: {
-          'sceneName': sceneName,
+          ..._sceneData(sceneName, sceneUuid, canvasUuid),
           'sceneItemId': sceneItemId,
           'sceneItemTransform': sceneItemTransform,
         },
@@ -380,11 +492,15 @@ class SceneItems {
   /// Strongly-typed companion to [setSceneItemTransform]. Only the
   /// non-null fields of [transform] are forwarded to OBS.
   Future<void> setSceneItemTransformTyped({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
     required SceneItemTransform transform,
   }) async => setSceneItemTransform(
     sceneName: sceneName,
+    sceneUuid: sceneUuid,
+    canvasUuid: canvasUuid,
     sceneItemId: sceneItemId,
     sceneItemTransform: transform.toJson(),
     validateKeys: false,
@@ -393,11 +509,15 @@ class SceneItems {
   /// Strongly-typed companion to [getSceneItemTransform]. Returns the
   /// transform parsed into a [SceneItemTransform].
   Future<SceneItemTransform> getSceneItemTransformTyped({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
   }) async {
     final raw = await getSceneItemTransform(
       sceneName: sceneName,
+      sceneUuid: sceneUuid,
+      canvasUuid: canvasUuid,
       sceneItemId: sceneItemId,
     );
     final nested = raw['sceneItemTransform'];
@@ -415,16 +535,29 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<int> createSceneItem({
-    required String sceneName,
-    required String sourceName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
+    String? sourceName,
+    String? sourceUuid,
     bool? sceneItemEnabled,
   }) async {
+    if (sceneName == null && sceneUuid == null) {
+      throw ArgumentError('sceneName or sceneUuid must be provided');
+    }
+    if (sourceName == null && sourceUuid == null) {
+      throw ArgumentError('sourceName or sourceUuid must be provided');
+    }
+
     final response = await obsWebSocket.sendRequest(
       Request(
         'CreateSceneItem',
         requestData: {
-          'sceneName': sceneName,
-          'sourceName': sourceName,
+          'sceneName': ?sceneName,
+          'sceneUuid': ?sceneUuid,
+          'canvasUuid': ?canvasUuid,
+          'sourceName': ?sourceName,
+          'sourceUuid': ?sourceUuid,
           'sceneItemEnabled': ?sceneItemEnabled,
         },
       ),
@@ -441,12 +574,17 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> removeSceneItem({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
   }) async => await obsWebSocket.sendRequest(
     Request(
       'RemoveSceneItem',
-      requestData: {'sceneName': sceneName, 'sceneItemId': sceneItemId},
+      requestData: {
+        ..._sceneData(sceneName, sceneUuid, canvasUuid),
+        'sceneItemId': sceneItemId,
+      },
     ),
   );
 
@@ -458,17 +596,21 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<int> duplicateSceneItem({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
     String? destinationSceneName,
+    String? destinationSceneUuid,
   }) async {
     final response = await obsWebSocket.sendRequest(
       Request(
         'DuplicateSceneItem',
         requestData: {
-          'sceneName': sceneName,
+          ..._sceneData(sceneName, sceneUuid, canvasUuid),
           'sceneItemId': sceneItemId,
           'destinationSceneName': ?destinationSceneName,
+          'destinationSceneUuid': ?destinationSceneUuid,
         },
       ),
     );
@@ -487,13 +629,18 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<String> getSceneItemBlendMode({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
   }) async {
     final response = await obsWebSocket.sendRequest(
       Request(
         'GetSceneItemBlendMode',
-        requestData: {'sceneName': sceneName, 'sceneItemId': sceneItemId},
+        requestData: {
+          ..._sceneData(sceneName, sceneUuid, canvasUuid),
+          'sceneItemId': sceneItemId,
+        },
       ),
     );
 
@@ -508,14 +655,16 @@ class SceneItems {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> setSceneItemBlendMode({
-    required String sceneName,
+    String? sceneName,
+    String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
     required String sceneItemBlendMode,
   }) async => await obsWebSocket.sendRequest(
     Request(
       'SetSceneItemBlendMode',
       requestData: {
-        'sceneName': sceneName,
+        ..._sceneData(sceneName, sceneUuid, canvasUuid),
         'sceneItemId': sceneItemId,
         'sceneItemBlendMode': sceneItemBlendMode,
       },
@@ -532,14 +681,14 @@ class SceneItems {
   Future<Map<String, dynamic>> getSceneItemSource({
     String? sceneName,
     String? sceneUuid,
+    String? canvasUuid,
     required int sceneItemId,
   }) async {
     final response = await obsWebSocket.sendRequest(
       Request(
         'GetSceneItemSource',
         requestData: {
-          'sceneName': ?sceneName,
-          'sceneUuid': ?sceneUuid,
+          ..._sceneData(sceneName, sceneUuid, canvasUuid),
           'sceneItemId': sceneItemId,
         },
       ),

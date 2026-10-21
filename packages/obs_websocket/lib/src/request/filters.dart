@@ -6,16 +6,40 @@ class Filters {
 
   Filters(this.obsWebSocket);
 
+  /// Builds and validates the source identifier fields shared by all filter
+  /// requests. One of [sourceName] or [sourceUuid] is required.
+  Map<String, dynamic> _sourceData(
+    String? sourceName,
+    String? sourceUuid,
+    String? canvasUuid,
+  ) {
+    if (sourceName == null && sourceUuid == null) {
+      throw ArgumentError('sourceName or sourceUuid must be provided');
+    }
+
+    return {
+      'sourceName': ?sourceName,
+      'sourceUuid': ?sourceUuid,
+      'canvasUuid': ?canvasUuid,
+    };
+  }
+
   /// Removes a filter from a source.
   ///
   /// - Complexity Rating: 2/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> removeSource({
-    required String sourceName,
+    String? sourceName,
+    String? sourceUuid,
+    String? canvasUuid,
     required String filterName,
-  }) async =>
-      await removeSourceFilter(sourceName: sourceName, filterName: filterName);
+  }) async => await removeSourceFilter(
+    sourceName: sourceName,
+    sourceUuid: sourceUuid,
+    canvasUuid: canvasUuid,
+    filterName: filterName,
+  );
 
   /// Removes a filter from a source.
   ///
@@ -23,12 +47,17 @@ class Filters {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> removeSourceFilter({
-    required String sourceName,
+    String? sourceName,
+    String? sourceUuid,
+    String? canvasUuid,
     required String filterName,
   }) async => await obsWebSocket.sendRequest(
     Request(
       'RemoveSourceFilter',
-      requestData: {'sourceName': sourceName, 'filterName': filterName},
+      requestData: {
+        ..._sourceData(sourceName, sourceUuid, canvasUuid),
+        'filterName': filterName,
+      },
     ),
   );
 
@@ -38,11 +67,15 @@ class Filters {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> setSourceName({
-    required String sourceName,
+    String? sourceName,
+    String? sourceUuid,
+    String? canvasUuid,
     required String filterName,
     required String newFilterName,
   }) async => await setSourceFilterName(
     sourceName: sourceName,
+    sourceUuid: sourceUuid,
+    canvasUuid: canvasUuid,
     filterName: filterName,
     newFilterName: newFilterName,
   );
@@ -53,14 +86,16 @@ class Filters {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> setSourceFilterName({
-    required String sourceName,
+    String? sourceName,
+    String? sourceUuid,
+    String? canvasUuid,
     required String filterName,
     required String newFilterName,
   }) async => await obsWebSocket.sendRequest(
     Request(
       'SetSourceFilterName',
       requestData: {
-        'sourceName': sourceName,
+        ..._sourceData(sourceName, sourceUuid, canvasUuid),
         'filterName': filterName,
         'newFilterName': newFilterName,
       },
@@ -73,11 +108,15 @@ class Filters {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> setSourceIndex({
-    required String sourceName,
+    String? sourceName,
+    String? sourceUuid,
+    String? canvasUuid,
     required String filterName,
     required int filterIndex,
   }) async => await setSourceFilterIndex(
     sourceName: sourceName,
+    sourceUuid: sourceUuid,
+    canvasUuid: canvasUuid,
     filterName: filterName,
     filterIndex: filterIndex,
   );
@@ -88,14 +127,16 @@ class Filters {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> setSourceFilterIndex({
-    required String sourceName,
+    String? sourceName,
+    String? sourceUuid,
+    String? canvasUuid,
     required String filterName,
     required int filterIndex,
   }) async => await obsWebSocket.sendRequest(
     Request(
       'SetSourceFilterIndex',
       requestData: {
-        'sourceName': sourceName,
+        ..._sourceData(sourceName, sourceUuid, canvasUuid),
         'filterName': filterName,
         'filterIndex': filterIndex,
       },
@@ -108,11 +149,15 @@ class Filters {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> setSourceEnabled({
-    required String sourceName,
+    String? sourceName,
+    String? sourceUuid,
+    String? canvasUuid,
     required String filterName,
     required bool filterEnabled,
   }) async => await setSourceFilterEnabled(
     sourceName: sourceName,
+    sourceUuid: sourceUuid,
+    canvasUuid: canvasUuid,
     filterName: filterName,
     filterEnabled: filterEnabled,
   );
@@ -123,14 +168,16 @@ class Filters {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> setSourceFilterEnabled({
-    required String sourceName,
+    String? sourceName,
+    String? sourceUuid,
+    String? canvasUuid,
     required String filterName,
     required bool filterEnabled,
   }) async => await obsWebSocket.sendRequest(
     Request(
       'SetSourceFilterEnabled',
       requestData: {
-        'sourceName': sourceName,
+        ..._sourceData(sourceName, sourceUuid, canvasUuid),
         'filterName': filterName,
         'filterEnabled': filterEnabled,
       },
@@ -159,10 +206,15 @@ class Filters {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<List<Map<String, dynamic>>> getSourceFilterList(
-    String sourceName,
-  ) async {
+    String? sourceName, {
+    String? sourceUuid,
+    String? canvasUuid,
+  }) async {
     final response = await obsWebSocket.sendRequest(
-      Request('GetSourceFilterList', requestData: {'sourceName': sourceName}),
+      Request(
+        'GetSourceFilterList',
+        requestData: _sourceData(sourceName, sourceUuid, canvasUuid),
+      ),
     );
 
     return (response!.responseData!['filters'] as List)
@@ -194,7 +246,9 @@ class Filters {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> createSourceFilter({
-    required String sourceName,
+    String? sourceName,
+    String? sourceUuid,
+    String? canvasUuid,
     required String filterName,
     required String filterKind,
     Map<String, dynamic>? filterSettings,
@@ -202,7 +256,7 @@ class Filters {
     Request(
       'CreateSourceFilter',
       requestData: {
-        'sourceName': sourceName,
+        ..._sourceData(sourceName, sourceUuid, canvasUuid),
         'filterName': filterName,
         'filterKind': filterKind,
         'filterSettings': ?filterSettings,
@@ -216,13 +270,18 @@ class Filters {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<Map<String, dynamic>> getSourceFilter({
-    required String sourceName,
+    String? sourceName,
+    String? sourceUuid,
+    String? canvasUuid,
     required String filterName,
   }) async {
     final response = await obsWebSocket.sendRequest(
       Request(
         'GetSourceFilter',
-        requestData: {'sourceName': sourceName, 'filterName': filterName},
+        requestData: {
+          ..._sourceData(sourceName, sourceUuid, canvasUuid),
+          'filterName': filterName,
+        },
       ),
     );
 
@@ -235,7 +294,9 @@ class Filters {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<void> setSourceFilterSettings({
-    required String sourceName,
+    String? sourceName,
+    String? sourceUuid,
+    String? canvasUuid,
     required String filterName,
     required Map<String, dynamic> filterSettings,
     bool? overlay,
@@ -243,7 +304,7 @@ class Filters {
     Request(
       'SetSourceFilterSettings',
       requestData: {
-        'sourceName': sourceName,
+        ..._sourceData(sourceName, sourceUuid, canvasUuid),
         'filterName': filterName,
         'filterSettings': filterSettings,
         'overlay': ?overlay,

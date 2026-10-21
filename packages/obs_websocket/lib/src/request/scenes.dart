@@ -13,7 +13,8 @@ class Scenes {
   /// - Complexity Rating: 2/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<SceneListResponse> getSceneList() async => await list();
+  Future<SceneListResponse> getSceneList({String? canvasUuid}) async =>
+      await list(canvasUuid: canvasUuid);
 
   /// Gets an array of all scenes in OBS.
   ///
@@ -22,7 +23,8 @@ class Scenes {
   /// - Complexity Rating: 2/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<SceneListResponse> getList() async => await list();
+  Future<SceneListResponse> getList({String? canvasUuid}) async =>
+      await list(canvasUuid: canvasUuid);
 
   /// Gets an array of all scenes in OBS.
   ///
@@ -31,8 +33,10 @@ class Scenes {
   /// - Complexity Rating: 2/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<SceneListResponse> list() async {
-    final response = await obsWebSocket.sendRequest(Request('GetSceneList'));
+  Future<SceneListResponse> list({String? canvasUuid}) async {
+    final response = await obsWebSocket.sendRequest(
+      Request('GetSceneList', requestData: {'canvasUuid': ?canvasUuid}),
+    );
 
     return SceneListResponse.fromJson(response!.responseData!);
   }
@@ -84,21 +88,28 @@ class Scenes {
   /// - Complexity Rating: 1/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<void> setCurrentProgramScene(String sceneName) async =>
-      await setCurrentProgram(sceneName);
+  Future<void> setCurrentProgramScene(
+    String? sceneName, {
+    String? sceneUuid,
+  }) async => await setCurrentProgram(sceneName, sceneUuid: sceneUuid);
 
   /// Sets the current program scene.
   ///
   /// - Complexity Rating: 1/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<void> setCurrentProgram(String sceneName) async =>
-      await obsWebSocket.sendRequest(
-        Request(
-          'SetCurrentProgramScene',
-          requestData: {'sceneName': sceneName},
-        ),
-      );
+  Future<void> setCurrentProgram(String? sceneName, {String? sceneUuid}) async {
+    if (sceneName == null && sceneUuid == null) {
+      throw ArgumentError('sceneName or sceneUuid must be provided');
+    }
+
+    await obsWebSocket.sendRequest(
+      Request(
+        'SetCurrentProgramScene',
+        requestData: {'sceneName': ?sceneName, 'sceneUuid': ?sceneUuid},
+      ),
+    );
+  }
 
   /// Gets the current preview scene.
   ///
@@ -125,52 +136,103 @@ class Scenes {
   /// - Complexity Rating: 1/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<void> setCurrentPreviewScene(String sceneName) async =>
-      setCurrentPreview(sceneName);
+  Future<void> setCurrentPreviewScene(
+    String? sceneName, {
+    String? sceneUuid,
+  }) async => setCurrentPreview(sceneName, sceneUuid: sceneUuid);
 
   /// Sets the current preview scene.
   ///
   /// - Complexity Rating: 1/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<void> setCurrentPreview(String sceneName) async =>
+  Future<void> setCurrentPreview(String? sceneName, {String? sceneUuid}) async {
+    if (sceneName == null && sceneUuid == null) {
+      throw ArgumentError('sceneName or sceneUuid must be provided');
+    }
+
+    await obsWebSocket.sendRequest(
+      Request(
+        'SetCurrentPreviewScene',
+        requestData: {'sceneName': ?sceneName, 'sceneUuid': ?sceneUuid},
+      ),
+    );
+  }
+
+  /// Creates a new scene in OBS.
+  ///
+  /// - Complexity Rating: 2/5
+  /// - Latest Supported RPC Version: 1
+  /// - Added in v5.0.0
+  Future<void> createScene(String sceneName, {String? canvasUuid}) async =>
+      await create(sceneName, canvasUuid: canvasUuid);
+
+  /// Creates a new scene in OBS.
+  ///
+  /// - Complexity Rating: 2/5
+  /// - Latest Supported RPC Version: 1
+  /// - Added in v5.0.0
+  Future<void> create(String sceneName, {String? canvasUuid}) async =>
       await obsWebSocket.sendRequest(
         Request(
-          'SetCurrentPreviewScene',
-          requestData: {'sceneName': sceneName},
+          'CreateScene',
+          requestData: {'sceneName': sceneName, 'canvasUuid': ?canvasUuid},
         ),
       );
 
-  /// Creates a new scene in OBS.
+  /// Removes a scene from OBS.
   ///
   /// - Complexity Rating: 2/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<void> createScene(String sceneName) async => await create(sceneName);
-
-  /// Creates a new scene in OBS.
-  ///
-  /// - Complexity Rating: 2/5
-  /// - Latest Supported RPC Version: 1
-  /// - Added in v5.0.0
-  Future<void> create(String sceneName) async => await obsWebSocket.sendRequest(
-    Request('CreateScene', requestData: {'sceneName': sceneName}),
-  );
+  Future<void> removeScene(
+    String? sceneName, {
+    String? sceneUuid,
+    String? canvasUuid,
+  }) async =>
+      await remove(sceneName, sceneUuid: sceneUuid, canvasUuid: canvasUuid);
 
   /// Removes a scene from OBS.
   ///
   /// - Complexity Rating: 2/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<void> removeScene(String sceneName) async => await remove(sceneName);
+  Future<void> remove(
+    String? sceneName, {
+    String? sceneUuid,
+    String? canvasUuid,
+  }) async {
+    if (sceneName == null && sceneUuid == null) {
+      throw ArgumentError('sceneName or sceneUuid must be provided');
+    }
 
-  /// Removes a scene from OBS.
+    await obsWebSocket.sendRequest(
+      Request(
+        'RemoveScene',
+        requestData: {
+          'sceneName': ?sceneName,
+          'sceneUuid': ?sceneUuid,
+          'canvasUuid': ?canvasUuid,
+        },
+      ),
+    );
+  }
+
+  /// Sets the name of a scene (rename).
   ///
   /// - Complexity Rating: 2/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<void> remove(String sceneName) async => await obsWebSocket.sendRequest(
-    Request('RemoveScene', requestData: {'sceneName': sceneName}),
+  Future<void> setSceneName(
+    String? sceneName, {
+    required String newSceneName,
+    String? sceneUuid,
+    String? canvasUuid,
+  }) async => await set(
+    sceneName,
+    newSceneName: newSceneName,
+    sceneUuid: sceneUuid,
+    canvasUuid: canvasUuid,
   );
 
   /// Sets the name of a scene (rename).
@@ -178,16 +240,28 @@ class Scenes {
   /// - Complexity Rating: 2/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<void> setSceneName(String sceneName) async => await set(sceneName);
+  Future<void> set(
+    String? sceneName, {
+    required String newSceneName,
+    String? sceneUuid,
+    String? canvasUuid,
+  }) async {
+    if (sceneName == null && sceneUuid == null) {
+      throw ArgumentError('sceneName or sceneUuid must be provided');
+    }
 
-  /// Sets the name of a scene (rename).
-  ///
-  /// - Complexity Rating: 2/5
-  /// - Latest Supported RPC Version: 1
-  /// - Added in v5.0.0
-  Future<void> set(String sceneName) async => await obsWebSocket.sendRequest(
-    Request('SetSceneName', requestData: {'sceneName': sceneName}),
-  );
+    await obsWebSocket.sendRequest(
+      Request(
+        'SetSceneName',
+        requestData: {
+          'sceneName': ?sceneName,
+          'sceneUuid': ?sceneUuid,
+          'newSceneName': newSceneName,
+          'canvasUuid': ?canvasUuid,
+        },
+      ),
+    );
+  }
 
   /// Gets the scene transition overridden for a scene.
   ///
@@ -195,12 +269,22 @@ class Scenes {
   /// Latest Supported RPC Version: 1
   /// Added in v5.0.0
   Future<SceneSceneTransitionOverrideResponse> getSceneSceneTransitionOverride(
-    String sceneName,
-  ) async {
+    String? sceneName, {
+    String? sceneUuid,
+    String? canvasUuid,
+  }) async {
+    if (sceneName == null && sceneUuid == null) {
+      throw ArgumentError('sceneName or sceneUuid must be provided');
+    }
+
     final response = await obsWebSocket.sendRequest(
       Request(
         'GetSceneSceneTransitionOverride',
-        requestData: {'sceneName': sceneName},
+        requestData: {
+          'sceneName': ?sceneName,
+          'sceneUuid': ?sceneUuid,
+          'canvasUuid': ?canvasUuid,
+        },
       ),
     );
 
@@ -215,17 +299,27 @@ class Scenes {
   /// Latest Supported RPC Version: 1
   /// Added in v5.0.0
   Future<void> setSceneSceneTransitionOverride(
-    String sceneName, {
+    String? sceneName, {
+    String? sceneUuid,
+    String? canvasUuid,
     String? transitionName,
     int? transitionDuration,
-  }) async => await obsWebSocket.sendRequest(
-    Request(
-      'SetSceneSceneTransitionOverride',
-      requestData: {
-        'sceneName': sceneName,
-        'transitionName': transitionName,
-        'transitionDuration': transitionDuration,
-      },
-    ),
-  );
+  }) async {
+    if (sceneName == null && sceneUuid == null) {
+      throw ArgumentError('sceneName or sceneUuid must be provided');
+    }
+
+    await obsWebSocket.sendRequest(
+      Request(
+        'SetSceneSceneTransitionOverride',
+        requestData: {
+          'sceneName': ?sceneName,
+          'sceneUuid': ?sceneUuid,
+          'canvasUuid': ?canvasUuid,
+          'transitionName': transitionName,
+          'transitionDuration': transitionDuration,
+        },
+      ),
+    );
+  }
 }

@@ -13,8 +13,12 @@ class Sources {
   /// - Complexity Rating: 2/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<SourceActiveResponse> getSourceActive(String sourceName) async =>
-      await active(sourceName);
+  Future<SourceActiveResponse> getSourceActive(
+    String? sourceName, {
+    String? sourceUuid,
+    String? canvasUuid,
+  }) async =>
+      await active(sourceName, sourceUuid: sourceUuid, canvasUuid: canvasUuid);
 
   /// Gets the active and show state of a source.
   ///
@@ -23,8 +27,25 @@ class Sources {
   /// - Complexity Rating: 2/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<SourceActiveResponse> active(String sourceName) async {
-    final response = await obsWebSocket.sendRequest(Request('GetSourceActive'));
+  Future<SourceActiveResponse> active(
+    String? sourceName, {
+    String? sourceUuid,
+    String? canvasUuid,
+  }) async {
+    if (sourceName == null && sourceUuid == null) {
+      throw ArgumentError('sourceName or sourceUuid must be provided');
+    }
+
+    final response = await obsWebSocket.sendRequest(
+      Request(
+        'GetSourceActive',
+        requestData: {
+          'sourceName': ?sourceName,
+          'sourceUuid': ?sourceUuid,
+          'canvasUuid': ?canvasUuid,
+        },
+      ),
+    );
 
     return SourceActiveResponse.fromJson(response!.responseData!);
   }

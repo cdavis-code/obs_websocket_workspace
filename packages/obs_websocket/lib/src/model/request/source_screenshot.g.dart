@@ -8,7 +8,9 @@ part of 'source_screenshot.dart';
 
 SourceScreenshot _$SourceScreenshotFromJson(Map<String, dynamic> json) =>
     SourceScreenshot(
-      sourceName: json['sourceName'] as String,
+      sourceName: json['sourceName'] as String?,
+      sourceUuid: json['sourceUuid'] as String?,
+      canvasUuid: json['canvasUuid'] as String?,
       imageFormat: json['imageFormat'] as String,
       imageFilePath: json['imageFilePath'] as String?,
       imageWidth: (json['imageWidth'] as num?)?.toInt(),
@@ -20,6 +22,8 @@ SourceScreenshot _$SourceScreenshotFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SourceScreenshotToJson(SourceScreenshot instance) =>
     <String, dynamic>{
       'sourceName': instance.sourceName,
+      'sourceUuid': instance.sourceUuid,
+      'canvasUuid': instance.canvasUuid,
       'imageFormat': instance.imageFormat,
       'imageFilePath': instance.imageFilePath,
       'imageWidth': instance.imageWidth,

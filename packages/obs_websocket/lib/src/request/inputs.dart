@@ -64,6 +64,7 @@ class Inputs {
   Future<CreateInputResponse> create({
     String? sceneName,
     String? sceneUuid,
+    String? canvasUuid,
     required String inputName,
     required String inputKind,
     dynamic inputSettings,
@@ -71,6 +72,7 @@ class Inputs {
   }) async => createInput(
     sceneName: sceneName,
     sceneUuid: sceneUuid,
+    canvasUuid: canvasUuid,
     inputName: inputName,
     inputKind: inputKind,
     inputSettings: inputSettings,
@@ -85,6 +87,7 @@ class Inputs {
   Future<CreateInputResponse> createInput({
     String? sceneName,
     String? sceneUuid,
+    String? canvasUuid,
     required String inputName,
     required String inputKind,
     Map<String, dynamic>? inputSettings,
@@ -94,8 +97,9 @@ class Inputs {
       Request(
         'CreateInput',
         requestData: {
-          'sceneName': sceneName,
-          'sceneUuid': sceneUuid,
+          'sceneName': ?sceneName,
+          'sceneUuid': ?sceneUuid,
+          'canvasUuid': ?canvasUuid,
           'inputName': inputName,
           'inputKind': inputKind,
           'inputSettings': inputSettings,

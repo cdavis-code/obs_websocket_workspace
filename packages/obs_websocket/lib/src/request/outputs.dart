@@ -102,6 +102,19 @@ class Outputs {
   Future<void> saveReplayBuffer(String outputName) async =>
       await obsWebSocket.sendRequest(Request('SaveReplayBuffer'));
 
+  /// Gets the filename of the last replay buffer save file.
+  ///
+  /// - Complexity Rating: 2/5
+  /// - Latest Supported RPC Version: 1
+  /// - Added in v5.0.0
+  Future<LastReplayBufferReplayResponse> getLastReplayBufferReplay() async {
+    final response = await obsWebSocket.sendRequest(
+      Request('GetLastReplayBufferReplay'),
+    );
+
+    return LastReplayBufferReplayResponse.fromJson(response!.responseData!);
+  }
+
   /// Toggles the status of an output.
   ///
   /// - Complexity Rating: 4/5
@@ -116,7 +129,9 @@ class Outputs {
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
   Future<bool> toggleOutput(String outputName) async {
-    final response = await obsWebSocket.sendRequest(Request('ToggleOutput'));
+    final response = await obsWebSocket.sendRequest(
+      Request('ToggleOutput', requestData: {'outputName': outputName}),
+    );
 
     return BooleanResponse.fromJson(response!.responseData!).enabled;
   }
@@ -133,8 +148,9 @@ class Outputs {
   /// - Complexity Rating: 4/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<void> start(String outputName) async =>
-      await obsWebSocket.sendRequest(Request('StartOutput'));
+  Future<void> start(String outputName) async => await obsWebSocket.sendRequest(
+    Request('StartOutput', requestData: {'outputName': outputName}),
+  );
 
   /// Stops an output.
   ///
@@ -148,8 +164,9 @@ class Outputs {
   /// - Complexity Rating: 1/5
   /// - Latest Supported RPC Version: 1
   /// - Added in v5.0.0
-  Future<void> stop(String outputName) async =>
-      await obsWebSocket.sendRequest(Request('StopOutput'));
+  Future<void> stop(String outputName) async => await obsWebSocket.sendRequest(
+    Request('StopOutput', requestData: {'outputName': outputName}),
+  );
 
   /// Gets the list of available outputs.
   ///

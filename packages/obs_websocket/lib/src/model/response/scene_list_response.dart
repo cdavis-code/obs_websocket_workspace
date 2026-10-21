@@ -8,12 +8,24 @@ part 'scene_list_response.g.dart';
 @JsonSerializable()
 class SceneListResponse {
   final String currentProgramSceneName;
+
+  /// UUID of the current program scene. `null` if the scene is on a
+  /// non-main canvas or OBS is internally desynced.
+  final String? currentProgramSceneUuid;
+
   final String? currentPreviewSceneName;
+
+  /// UUID of the current preview scene. `null` if not in studio mode, the
+  /// scene is on a non-main canvas, or OBS is internally desynced.
+  final String? currentPreviewSceneUuid;
+
   final List<Scene> scenes;
 
   SceneListResponse({
     required this.currentProgramSceneName,
+    this.currentProgramSceneUuid,
     this.currentPreviewSceneName,
+    this.currentPreviewSceneUuid,
     required this.scenes,
   });
 
