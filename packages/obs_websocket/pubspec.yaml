@@ -1,12 +1,14 @@
 name: obs_websocket
-version: 5.7.0+5
+version: 5.7.0+6
 description: An OBS WebSocket client written in Dart. obs_websocket allows Dart-based connections to the OBS (Open Broadcaster Software) plugin obs-websocket.
 homepage: https://github.com/cdavis-code/obs_websocket_workspace
 repository: https://github.com/cdavis-code/obs_websocket_workspace/tree/main/packages/obs_websocket
 issue_tracker: https://github.com/cdavis-code/obs_websocket_workspace/issues
 documentation: https://pub.dev/documentation/obs_websocket/latest/
+
 funding:
   - https://buymeacoffee.com/cdavis
+
 topics:
   - obs-websocket
   - obs-studio

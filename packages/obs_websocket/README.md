@@ -13,6 +13,8 @@ This package gives access to all of the methods and events outlined by the [obs-
     - [Requirements](#requirements)
     - [Usage Example](#usage-example)
     - [Opening a websocket Connection](#opening-a-websocket-connection)
+      - [Option 1: Connect using `.env` file or environment variables (Recommended)](#option-1-connect-using-env-file-or-environment-variables-recommended)
+      - [Option 2: Manual connection with explicit parameters](#option-2-manual-connection-with-explicit-parameters)
     - [Authenticating to OBS](#authenticating-to-obs)
     - [Sending Commands to OBS](#sending-commands-to-obs)
   - [Supported high-level commands](#supported-high-level-commands)
@@ -32,7 +34,7 @@ This package gives access to all of the methods and events outlined by the [obs-
 
 [![Build Status](https://github.com/cdavis-code/obs_websocket_workspace/workflows/Dart/badge.svg)](https://github.com/cdavis-code/obs_websocket_workspace/actions) [![github last commit](https://shields.io/github/last-commit/cdavis-code/obs_websocket_workspace)](https://shields.io/github/last-commit/cdavis-code/obs_websocket_workspace) [![github build](https://img.shields.io/github/actions/workflow/status/cdavis-code/obs_websocket_workspace/dart.yml?branch=main)](https://shields.io/github/workflow/status/cdavis-code/obs_websocket_workspace/Dart) [![github issues](https://shields.io/github/issues/cdavis-code/obs_websocket_workspace)](https://shields.io/github/issues/cdavis-code/obs_websocket_workspace)
 
-[![Buy me a coffee](https://www.buymeacoffee.com/assets/img/guidelines/download-assets-1.svg)](https://www.buymeacoffee.com/faithoflif2)
+[![Buy me a coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/cdavis)
 
 ## Breaking changes from v2.4.3 (obs-websocket v4.9.1 protocol)
 

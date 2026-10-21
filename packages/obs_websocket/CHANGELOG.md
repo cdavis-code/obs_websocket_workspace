@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.7.0+6
+
+* **Documentation**
+  * Fixed broken Buy Me a Coffee link in README
+  * Added connection options to README table of contents
+
 ## 5.7.0+5
 
 * **Maintenance**
