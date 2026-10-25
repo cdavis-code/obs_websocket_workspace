@@ -81,7 +81,25 @@ export interface ConnectOptions {
   /** Timeout in seconds (default 120). */
   timeout?: number;
   logLevel?: 'all' | 'debug' | 'info' | 'warning' | 'error';
+  /**
+   * Reconnect automatically when the socket drops (default false). Retries
+   * use exponential backoff and surface as `connectionStateChange` events.
+   */
+  autoReconnect?: boolean;
+  /** Consecutive failed attempts before giving up (default 5). */
+  maxReconnectAttempts?: number;
+  /** First retry delay in milliseconds; doubles each attempt (default 200). */
+  reconnectBaseDelayMs?: number;
+  /** Backoff ceiling in milliseconds (default 5000). */
+  reconnectMaxDelayMs?: number;
 }
+
+/** Connection lifecycle states carried by the `connectionStateChange` event. */
+export type ObsConnectionState =
+  | 'disconnected'
+  | 'connected'
+  | 'reconnecting'
+  | 'failed';
 
 /**
  * EventSubscription bitmask (must match Dart `EventSubscription` enum).
@@ -124,6 +142,8 @@ export interface ObsJsHandle {
   off(eventType: string, cb?: (event: ObsEvent) => void): void;
   onAny(cb: (event: ObsEvent) => void): void;
   offAny(cb?: (event: ObsEvent) => void): void;
+  onStateChanged(cb: (state: ObsConnectionState) => void): void;
+  offStateChanged(cb?: (state: ObsConnectionState) => void): void;
   close(): Promise<void>;
   negotiatedRpcVersion: number;
 }
@@ -134,6 +154,10 @@ export interface ObsJsNamespace {
     password?: string,
     timeoutSeconds?: number,
     logLevel?: string,
+    autoReconnect?: boolean,
+    maxReconnectAttempts?: number,
+    reconnectBaseDelayMs?: number,
+    reconnectMaxDelayMs?: number,
   ): Promise<ObsJsHandle>;
   version: string;
 }

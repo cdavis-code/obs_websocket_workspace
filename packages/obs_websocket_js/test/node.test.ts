@@ -8,6 +8,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type {
   BatchRequest,
+  ObsConnectionState,
   ObsEvent,
   ObsJsHandle,
   RequestBatchResponse,
@@ -25,8 +26,10 @@ class TestableObs extends ObsWebSocket {
 const makeStubHandle = (): ObsJsHandle & {
   lastSend?: { command: string; args?: Record<string, any> };
   emitEvent?: (event: ObsEvent) => void;
+  emitState?: (state: ObsConnectionState) => void;
 } => {
   let fallbackCb: ((e: ObsEvent) => void) | undefined;
+  let stateCb: ((s: ObsConnectionState) => void) | undefined;
   return {
     send: vi.fn(async function (
       this: any,
@@ -54,10 +57,17 @@ const makeStubHandle = (): ObsJsHandle & {
       fallbackCb = cb;
     }),
     offAny: vi.fn(),
+    onStateChanged: vi.fn((cb: (s: ObsConnectionState) => void) => {
+      stateCb = cb;
+    }),
+    offStateChanged: vi.fn(),
     close: vi.fn(async () => undefined),
     negotiatedRpcVersion: 1,
     get emitEvent() {
       return fallbackCb;
+    },
+    get emitState() {
+      return stateCb;
     },
   };
 };
@@ -103,6 +113,47 @@ describe('ObsWebSocket facade (node)', () => {
 
     expect(received).toHaveLength(1);
     expect(received[0]!.eventData.sceneName).toBe('Foo');
+  });
+
+  it('forwards connection state changes through the EventEmitter', () => {
+    const handle = makeStubHandle();
+    const obs = TestableObs.fromHandle(handle);
+    const states: ObsConnectionState[] = [];
+    obs.on('connectionStateChange', (s: ObsConnectionState) => states.push(s));
+
+    const fire = (handle as any).emitState as (s: ObsConnectionState) => void;
+    fire('reconnecting');
+    fire('connected');
+
+    expect(states).toEqual(['reconnecting', 'connected']);
+  });
+
+  it('connect() forwards autoReconnect options to the Dart runtime', async () => {
+    const connect = vi.fn(async () => makeStubHandle());
+    (globalThis as any).ObsWebSocketJs = { connect, version: '5.7.4' };
+
+    await ObsWebSocket.connect(
+      'ws://localhost:4455',
+      {
+        password: 'pw',
+        autoReconnect: true,
+        maxReconnectAttempts: 3,
+        reconnectBaseDelayMs: 500,
+        reconnectMaxDelayMs: 9000,
+      },
+      async () => {},
+    );
+
+    expect(connect).toHaveBeenCalledWith(
+      'ws://localhost:4455',
+      'pw',
+      120,
+      undefined,
+      true,
+      3,
+      500,
+      9000,
+    );
   });
 
   it('disconnect() closes the handle and removes listeners', async () => {

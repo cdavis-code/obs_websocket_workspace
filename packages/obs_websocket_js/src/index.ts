@@ -28,6 +28,7 @@ import {
 import type {
   BatchRequest,
   ConnectOptions,
+  ObsConnectionState,
   ObsEvent,
   ObsJsHandle,
   RequestBatchResponse,
@@ -90,6 +91,11 @@ export class ObsWebSocket extends EventEmitter {
       this.emit(event.eventType, event);
       this.emit('*', event);
     });
+
+    // Forward connection lifecycle transitions (drop / reconnect / failure).
+    handle.onStateChanged((state: ObsConnectionState) => {
+      this.emit('connectionStateChange', state);
+    });
   }
 
   static async connect(
@@ -109,6 +115,10 @@ export class ObsWebSocket extends EventEmitter {
       opts.password,
       opts.timeout ?? 120,
       opts.logLevel,
+      opts.autoReconnect ?? false,
+      opts.maxReconnectAttempts,
+      opts.reconnectBaseDelayMs,
+      opts.reconnectMaxDelayMs,
     );
     return new ObsWebSocket(handle);
   }

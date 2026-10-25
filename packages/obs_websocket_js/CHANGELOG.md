@@ -4,6 +4,18 @@ All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.7.4] - 2026-10-25
+
+### Added
+- **Auto-reconnection** — `ConnectOptions.autoReconnect` re-establishes the socket with exponential backoff after an unexpected drop; the underlying Dart client owns the retry loop, so the `ObsWebSocket` instance, its typed sub-APIs and all `obs.on(...)` subscriptions survive a reconnect
+- New `ConnectOptions` knobs: `maxReconnectAttempts` (default 5), `reconnectBaseDelayMs` (default 200, doubles per attempt), `reconnectMaxDelayMs` (default 5000)
+- `connectionStateChange` event emitting `'connected' | 'reconnecting' | 'disconnected' | 'failed'`, plus the exported `ObsConnectionState` type
+
+### Changed
+- Requires `obs_websocket` 5.7.0+7 (`enableAutoReconnect()`, the `onConnectionStateChanged` stream, and `dart.library.js_interop` connect resolution under dart2js)
+- `ObsWebSocketJs.connect()` accepts four extra trailing arguments: `autoReconnect`, `maxRetries`, `baseDelayMs`, `maxDelayMs`
+- User-initiated `disconnect()` never triggers a reconnect attempt
+
 ## [5.7.3] - 2026-10-25
 
 ### Changed

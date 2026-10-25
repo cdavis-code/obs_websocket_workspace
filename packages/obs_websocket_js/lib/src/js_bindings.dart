@@ -19,26 +19,32 @@ external JSObject get _globalThis;
 void install() {
   final ns = JSObject();
   ns.setProperty('connect'.toJS, _connect.toJS);
-  ns.setProperty('version'.toJS, '5.7.0'.toJS);
+  ns.setProperty('version'.toJS, '5.7.4'.toJS);
   _globalThis.setProperty('ObsWebSocketJs'.toJS, ns);
 }
 
 /// Connects to OBS and resolves to a `JsObsWebSocket` handle.
 ///
 /// JS signature:
-///   `ObsWebSocketJs.connect(url, password?, timeoutSeconds?, logLevel?)`
+///   `ObsWebSocketJs.connect(url, password?, timeoutSeconds?, logLevel?,
+///   autoReconnect?, maxRetries?, baseDelayMs?, maxDelayMs?)`
 /// Returns: `Promise<JsObsWebSocket>`.
 ///
 /// Note: We bypass `ObsWebSocket.connect()` because its conditional import
 /// (`dart.library.html`) no longer resolves in Dart 3.x dart2js.
 /// Instead, we use `WebSocketChannel.connect()` directly (which uses the
 /// browser's native WebSocket via `package:web` under the hood in dart2js)
-/// and then construct `ObsWebSocket` with the resulting channel.
+/// and then construct `ObsWebSocket` with the resulting channel. Reconnection
+/// itself runs inside the Dart client via `enableAutoReconnect()`.
 JSPromise<JSObject> _connect(
   JSString url,
   JSString? password,
   JSNumber? timeoutSeconds,
   JSString? logLevel,
+  JSBoolean? autoReconnect,
+  JSNumber? maxRetries,
+  JSNumber? baseDelayMs,
+  JSNumber? maxDelayMs,
 ) {
   final future = () async {
     final logOpts = _parseLogLevel(logLevel?.toDart);
@@ -62,6 +68,16 @@ JSPromise<JSObject> _connect(
     );
 
     await obs.init();
+
+    if (autoReconnect?.toDart ?? false) {
+      obs.enableAutoReconnect(
+        connectUrl,
+        timeout: timeout,
+        maxAttempts: maxRetries?.toDartInt ?? ObsWebSocket.maxReconnectAttempts,
+        baseDelay: Duration(milliseconds: baseDelayMs?.toDartInt ?? 200),
+        maxDelay: Duration(milliseconds: maxDelayMs?.toDartInt ?? 5000),
+      );
+    }
 
     return _wrap(obs);
   }();
@@ -131,7 +147,32 @@ JSObject _wrap(ObsWebSocket obs) {
 
   obs.addFallbackListener(dispatch);
 
+  final stateHandlers = <JSFunction>[];
+  obs.onConnectionStateChanged.listen((state) {
+    for (final fn in List<JSFunction>.from(stateHandlers)) {
+      fn.callAsFunction(null, state.name.toJS);
+    }
+  });
+
   final handle = JSObject();
+
+  handle.setProperty(
+    'onStateChanged'.toJS,
+    ((JSFunction callback) {
+      stateHandlers.add(callback);
+    }).toJS,
+  );
+
+  handle.setProperty(
+    'offStateChanged'.toJS,
+    ((JSFunction? callback) {
+      if (callback == null) {
+        stateHandlers.clear();
+      } else {
+        stateHandlers.removeWhere((fn) => identical(fn, callback));
+      }
+    }).toJS,
+  );
 
   handle.setProperty(
     'send'.toJS,

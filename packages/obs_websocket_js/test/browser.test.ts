@@ -31,6 +31,8 @@ describe('ObsWebSocket facade (browser)', () => {
         fallback = cb;
       }),
       offAny: vi.fn(),
+      onStateChanged: vi.fn(),
+      offStateChanged: vi.fn(),
       close: vi.fn(),
       negotiatedRpcVersion: 1,
     };

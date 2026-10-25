@@ -53,6 +53,11 @@ class ObsWebSocket with UiLoggy {
   /// Maximum reconnect attempts before emitting [ObsConnectionState.failed].
   static const int maxReconnectAttempts = 5;
 
+  /// Reconnect tuning, overridable via [enableAutoReconnect].
+  int _maxReconnectAttempts = maxReconnectAttempts;
+  Duration _reconnectBaseDelay = const Duration(milliseconds: 200);
+  Duration _reconnectMaxDelay = const Duration(seconds: 5);
+
   final StreamController<ObsConnectionState> _connectionStateController =
       StreamController<ObsConnectionState>.broadcast();
 
@@ -386,6 +391,29 @@ class ObsWebSocket with UiLoggy {
     );
 
     await authenticate();
+
+    if (!_userClosed) _setConnectionState(ObsConnectionState.connected);
+  }
+
+  /// Enables automatic reconnection for a client built directly from a
+  /// [WebSocketChannel] — the path web/dart2js builds take, because [connect]
+  /// cannot create the channel there. Call after [init] completes the
+  /// handshake; retries use exponential backoff from [baseDelay] up to
+  /// [maxDelay], giving up after [maxAttempts] consecutive failures.
+  void enableAutoReconnect(
+    String connectUrl, {
+    Duration timeout = const Duration(seconds: 120),
+    int maxAttempts = maxReconnectAttempts,
+    Duration baseDelay = const Duration(milliseconds: 200),
+    Duration maxDelay = const Duration(seconds: 5),
+  }) {
+    _reconnectUrl = _normalizeConnectUrl(connectUrl);
+    _reconnectTimeout = timeout;
+    _maxReconnectAttempts = maxAttempts;
+    _reconnectBaseDelay = baseDelay;
+    _reconnectMaxDelay = maxDelay;
+    _autoReconnect = true;
+    if (handshakeComplete) _setConnectionState(ObsConnectionState.connected);
   }
 
   /// Sends `GetVersion` and returns the parsed [VersionResponse]. A cheap
@@ -482,12 +510,17 @@ class ObsWebSocket with UiLoggy {
     _reconnecting = true;
     _setConnectionState(ObsConnectionState.reconnecting);
 
-    while (_reconnectAttempt < maxReconnectAttempts) {
+    while (_reconnectAttempt < _maxReconnectAttempts) {
       _reconnectAttempt++;
-      final backoffMs = (200 * (1 << (_reconnectAttempt - 1))).clamp(200, 5000);
+      final backoffMs =
+          (_reconnectBaseDelay.inMilliseconds * (1 << (_reconnectAttempt - 1)))
+              .clamp(
+                _reconnectBaseDelay.inMilliseconds,
+                _reconnectMaxDelay.inMilliseconds,
+              );
       loggy.warning(
         'OBS WebSocket disconnected. Reconnect attempt '
-        '$_reconnectAttempt/$maxReconnectAttempts in ${backoffMs}ms',
+        '$_reconnectAttempt/$_maxReconnectAttempts in ${backoffMs}ms',
       );
       await Future<void>.delayed(Duration(milliseconds: backoffMs));
 

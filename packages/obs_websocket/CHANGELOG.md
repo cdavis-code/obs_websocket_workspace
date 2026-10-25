@@ -1,5 +1,21 @@
 # Changelog
 
+## 5.7.0+7
+
+* **Auto-reconnection for web / dart2js clients**
+  * `init()` now reports `ObsConnectionState.connected` once the handshake completes, so dropped sockets are observable
+  * Added `enableAutoReconnect(url, {timeout, maxAttempts, baseDelay, maxDelay})` for clients constructed from an existing `WebSocketChannel`
+  * Reconnect backoff and attempt limits are per-client instead of hard-coded (defaults unchanged: 200 ms doubling to 5 s, 5 attempts)
+  * `Connect()` resolves the web implementation under dart2js (`dart.library.js_interop` replaced `dart.library.html`); previously it threw `UnsupportedError`, which made reconnect impossible in compiled JS builds
+* **Coverage recorded retrospectively** — shipped in 5.7.0+6 without changelog entries
+  * Full OBS WebSocket v5.x coverage: all 147 protocol requests (including `GetLastReplayBufferReplay`) and all 60 events
+  * `canvasUuid` / `sceneUuid` / `sourceUuid` addressing across scenes, sources, filters, scene items and projectors
+  * `SceneListResponse` now exposes `currentProgramSceneUuid` and `currentPreviewSceneUuid`
+  * `RequestStatusCode` gained `notReady` (207), `outputDisabled` (503), `studioModeActive` (504), `invalidInputKind` (608)
+  * **Breaking**: `setSceneName()` requires `newSceneName` (the request previously failed server-side); `GetSourceActive`, `ToggleOutput`, `StartOutput` and `StopOutput` now send their identifier fields
+* **Documentation**
+  * README: new Auto-reconnection section, `connectionState` / `onConnectionStateChanged` examples, corrected the stale "not all requests implemented" note
+
 ## 5.7.0+6
 
 * **Documentation**
