@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.7.6] - 2026-10-25
+
+### Changed
+- README: added a table of contents and a Related Packages cross-reference table
+- No runtime or `dist` changes
+
 ## [5.7.5] - 2026-05-26
 
 ### Changed

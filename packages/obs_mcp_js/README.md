@@ -205,8 +205,8 @@ Requires Dart SDK ^3.8.0 and Node.js >= 18.
 
 | Package Name | Short Description | Link |
 | --- | --- | --- |
-| [**obs_cli**](https://pub.dev/packages/obs_cli) `v5.7.0+3` | Command-line interface for controlling OBS Studio via the obs-websocket protocol | https://pub.dev/packages/obs_cli |
-| [**obs_mcp**](https://pub.dev/packages/obs_mcp) `v5.7.2+1` | MCP server for controlling OBS Studio via the obs-websocket v5.x protocol | https://pub.dev/packages/obs_mcp |
+| [**obs_cli**](https://pub.dev/packages/obs_cli) `v5.7.0+4` | Command-line interface for controlling OBS Studio via the obs-websocket protocol | https://pub.dev/packages/obs_cli |
+| [**obs_mcp**](https://pub.dev/packages/obs_mcp) `v5.7.2+2` | MCP server for controlling OBS Studio via the obs-websocket v5.x protocol | https://pub.dev/packages/obs_mcp |
 | [**obs_websocket**](https://pub.dev/packages/obs_websocket) `v5.7.0+7` | OBS WebSocket client library written in Dart (v5.x protocol) | https://pub.dev/packages/obs_websocket |
 | [**obs_websocket_js**](https://www.npmjs.com/package/@unngh/obs-websocket) `v5.7.4` | JavaScript/TypeScript bindings for `obs_websocket`, for browsers and Node.js | https://www.npmjs.com/package/@unngh/obs-websocket |
 

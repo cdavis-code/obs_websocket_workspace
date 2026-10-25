@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 5.7.2+2
+
+* **Documentation**
+  * Added Related Packages cross-reference table and TOC entry
 
 ## 5.7.2+1
 

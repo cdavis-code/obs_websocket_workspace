@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.7.0+4
+
+* **Documentation**
+  * Added Related Packages cross-reference table and TOC entry
+
 ## 5.7.0+3
 
 * **Maintenance**
