@@ -9,7 +9,14 @@ name: Update Homebrew Formula
 #   - A GitHub PAT with repo scope must be stored as secret HOMEBREW_TAP_TOKEN
 #     (must have write access to cdavis-code/homebrew-obs-websocket)
 
+# A GitHub Release created with the default GITHUB_TOKEN by homebrew-release.yaml
+# does not emit a chainable `release` event, so the automatic trigger here is
+# workflow_run on that build. The `release` trigger still covers releases that a
+# human publishes manually.
 on:
+  workflow_run:
+    workflows: ['Build and Release Homebrew Binaries']
+    types: [completed]
   release:
     types: [published]
   workflow_dispatch:
@@ -22,6 +29,8 @@ on:
 jobs:
   update-formula:
     name: Update Homebrew formula
+    # workflow_run also fires when the build failed or was cancelled — skip those.
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     env:
       TAP_REPO: cdavis-code/homebrew-obs-websocket
@@ -30,10 +39,14 @@ jobs:
       - name: Determine tag
         id: vars
         run: |
-          # From workflow_dispatch input or release event
-          TAG="${{ github.event.inputs.tag || github.event.release.tag_name }}"
+          # From workflow_dispatch input, the tag run that just finished, or a manual release
+          TAG="${{ github.event.inputs.tag || github.event.workflow_run.head_branch || github.event.release.tag_name }}"
           # Strip refs/tags/ prefix if present (from dispatch)
           TAG="${TAG#refs/tags/}"
+          if [ -z "$TAG" ]; then
+            echo "::error::Could not determine the release tag from this event"
+            exit 1
+          fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
           # Version without leading 'v' for the formula's version field
@@ -110,11 +123,23 @@ jobs:
           echo "  mcp-linux-amd64 → $SHA"
 
       # ── Update formula ──────────────────────────────────────────────
+      - name: Checkout release templates
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+
       - name: Clone Homebrew tap repo
         run: |
           git clone \
             "https://x-access-token:${{ secrets.HOMEBREW_TAP_TOKEN }}@github.com/${{ env.TAP_REPO }}.git" \
             tap-repo
+
+      # The placeholder tokens are consumed by the substitutions below, so each
+      # run must start from the repo templates or the sed patterns silently
+      # match nothing and stale checksums ship.
+      - name: Seed formula placeholders
+        working-directory: tap-repo
+        run: cp ../homebrew/obs-cli.rb ../homebrew/obs-mcp.rb Formula/
 
       - name: Update formula content
         working-directory: tap-repo
@@ -154,9 +179,20 @@ jobs:
       - name: Commit and push formulas
         working-directory: tap-repo
         run: |
+          if grep -q "_SHA256\"" Formula/obs-cli.rb Formula/obs-mcp.rb; then
+            echo "::error::placeholder checksums survived the substitution"
+            exit 1
+          fi
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Formula/obs-cli.rb Formula/obs-mcp.rb
+
+          if git diff --cached --quiet; then
+            echo "Formulas already current for ${{ steps.vars.outputs.tag }}"
+            exit 0
+          fi
+
           git commit -m "obs-cli + obs-mcp ${{ steps.vars.outputs.tag }}"
           git push origin main
 
