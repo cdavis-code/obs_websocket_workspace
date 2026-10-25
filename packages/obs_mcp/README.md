@@ -36,6 +36,7 @@ A standalone MCP (Model Context Protocol) server for controlling OBS Studio via 
     - [Running from Source](#running-from-source)
     - [Code Generation](#code-generation)
   - [Testing with MCP Inspector](#testing-with-mcp-inspector)
+  - [Related Packages](#related-packages)
   - [Contributing](#contributing)
   - [License](#license)
 
@@ -230,6 +231,15 @@ The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) (`@modelc
 3. **Browse and invoke tools** in the web UI that opens automatically. You can inspect request/response payloads for each tool call.
 
 4. **Provide connection credentials** by placing a `.env` file in the `packages/obs_mcp/` or `packages/obs_mcp/bin/` directory with your `OBS_WEBSOCKET_URL` and `OBS_WEBSOCKET_PASSWORD` values.
+
+## Related Packages
+
+| Package Name | Short Description | Link |
+| --- | --- | --- |
+| [**obs_cli**](https://pub.dev/packages/obs_cli) `v5.7.0+3` | Command-line interface for controlling OBS Studio via the obs-websocket protocol | https://pub.dev/packages/obs_cli |
+| [**obs_mcp_js**](https://www.npmjs.com/package/@unngh/obs-mcp) `v5.7.5` | `obs_mcp` compiled to JavaScript for Node.js execution via `npx` | https://www.npmjs.com/package/@unngh/obs-mcp |
+| [**obs_websocket**](https://pub.dev/packages/obs_websocket) `v5.7.0+7` | OBS WebSocket client library written in Dart (v5.x protocol) | https://pub.dev/packages/obs_websocket |
+| [**obs_websocket_js**](https://www.npmjs.com/package/@unngh/obs-websocket) `v5.7.4` | JavaScript/TypeScript bindings for `obs_websocket`, for browsers and Node.js | https://www.npmjs.com/package/@unngh/obs-websocket |
 
 ## Contributing
 

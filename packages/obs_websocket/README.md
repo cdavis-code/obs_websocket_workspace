@@ -1,7 +1,7 @@
 
 # obs_websocket
 
-This package gives access to all of the methods and events outlined by the [obs-websocket 5.1.0 protocol reference](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md) through the `send` method documented below, but also has helper methods for many of the more popular [requests](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requests) that are made available through the protocol reference.
+This package gives access to every method and event outlined by the [obs-websocket 5.x protocol reference](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md) through the `send` method documented below, but also has helper methods for all of the [requests](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requests) that are made available through the protocol reference.
 
 [![pub package](https://img.shields.io/pub/v/obs_websocket.svg)](https://pub.dartlang.org/packages/obs_websocket)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -15,6 +15,7 @@ This package gives access to all of the methods and events outlined by the [obs-
     - [Opening a websocket Connection](#opening-a-websocket-connection)
       - [Option 1: Connect using `.env` file or environment variables (Recommended)](#option-1-connect-using-env-file-or-environment-variables-recommended)
       - [Option 2: Manual connection with explicit parameters](#option-2-manual-connection-with-explicit-parameters)
+      - [Auto-reconnection](#auto-reconnection)
     - [Authenticating to OBS](#authenticating-to-obs)
     - [Sending Commands to OBS](#sending-commands-to-obs)
   - [Supported high-level commands](#supported-high-level-commands)
@@ -27,6 +28,7 @@ This package gives access to all of the methods and events outlined by the [obs-
     - [Handling events not yet supported](#handling-events-not-yet-supported)
   - [Closing the websocket](#closing-the-websocket)
   - [obs\_websocket cli (OBS at the command prompt)](#obs_websocket-cli-obs-at-the-command-prompt)
+  - [Related Packages](#related-packages)
   - [Interesting Projects](#interesting-projects)
   - [Contributors](#contributors)
   - [Contributing](#contributing)
@@ -52,7 +54,7 @@ In your project add the dependency:
 ```yml
 dependencies:
   ...
-  obs_websocket: ^5.7.0+6
+  obs_websocket: ^5.7.0+7
 ```
 
 For help getting started with dart, check out these [guides](https://dart.dev/guides).
@@ -117,13 +119,45 @@ final obsWebSocket =
 
 These settings are available to change and review through the OBS user interface by clicking `Tools, obs-websocket Settings`.
 
+#### Auto-reconnection
+
+Pass `autoReconnect: true` to keep the client alive across OBS restarts or network drops. Retries use exponential backoff (200 ms doubling up to 5 s) and stop after `ObsWebSocket.maxReconnectAttempts` consecutive failures. The same client instance — including its helper objects and event handlers — keeps working after a reconnect.
+
+```dart
+final obs = await ObsWebSocket.connect(
+  'ws://[obs-studio host ip]:[port]',
+  password: '[password]',
+  autoReconnect: true,
+);
+
+// disconnected | connected | reconnecting | failed
+obs.onConnectionStateChanged.listen((state) => print('OBS: $state'));
+
+print(obs.connectionState); // ObsConnectionState.connected
+```
+
+`close()` is always treated as a user-initiated shutdown and never triggers a reconnect.
+
+Clients built from an existing `WebSocketChannel` (the path web/dart2js builds take, where the channel is created outside this package) opt in with `enableAutoReconnect()` once the handshake has completed:
+
+```dart
+final obs = ObsWebSocket(webSocketChannel, password: '[password]');
+await obs.init();
+obs.enableAutoReconnect(
+  'ws://[obs-studio host ip]:[port]',
+  maxAttempts: 10,
+  baseDelay: const Duration(milliseconds: 500),
+  maxDelay: const Duration(seconds: 30),
+);
+```
+
 ### Authenticating to [OBS](https://obsproject.com/)
 
 If a `password` is supplied to the `connect` method, authentication will occur automatically assuming that it is enabled for OBS. 
 
 ### Sending Commands to [OBS](https://obsproject.com/)
 
-The available commands/requests are documented on the [protocol](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requests) page of the [obs-websocket](https://github.com/obsproject/obs-websocket) github page. Note that not all commands listed on the protocol page have been implemented in code at this time. For any command not yet implemented, refer to the `low-level` method of sending commands, documented below.
+The available commands/requests are documented on the [protocol](https://github.com/obsproject/obs-websocket/blob/master/docs/generated/protocol.md#requests) page of the [obs-websocket](https://github.com/obsproject/obs-websocket) github page. Every request in the v5.x protocol has a high-level helper (see [Supported Requests](#supported-requests)); `send` remains available for any protocol extension or vendor request.
 
 ```dart
 final status = await obs.stream.status;
@@ -138,7 +172,7 @@ if (!status.outputActive) {
 
 ## Supported high-level commands
 
-For any of the items that have an [x\] from the list below, a high level helper command is available for that operation, i.e. `obsWebSocket.general.version` or `obsWebSocket.general.getVersion()`.  Otherwise a low-level command can be used to perform the operation, i.e. `obsWebSocket.send('GetVersion')`.
+For any of the items that have an [x\] from the list below, a high level helper command is available for that operation, i.e. `obsWebSocket.general.version` or `obsWebSocket.general.getVersion()`.  A low-level command can also be used for any operation, i.e. `obsWebSocket.send('GetVersion')`.
 
 ### Supported Requests
 
@@ -585,6 +619,15 @@ Available commands:
   ui            Commands that manipulate the OBS user interface.
   version       Display the package name and version
 ```
+
+## Related Packages
+
+| Package Name | Short Description | Link |
+| --- | --- | --- |
+| [**obs_cli**](https://pub.dev/packages/obs_cli) `v5.7.0+3` | Command-line interface for controlling OBS Studio via the obs-websocket protocol | https://pub.dev/packages/obs_cli |
+| [**obs_mcp**](https://pub.dev/packages/obs_mcp) `v5.7.2+1` | MCP server for controlling OBS Studio via the obs-websocket v5.x protocol | https://pub.dev/packages/obs_mcp |
+| [**obs_mcp_js**](https://www.npmjs.com/package/@unngh/obs-mcp) `v5.7.5` | `obs_mcp` compiled to JavaScript for Node.js execution via `npx` | https://www.npmjs.com/package/@unngh/obs-mcp |
+| [**obs_websocket_js**](https://www.npmjs.com/package/@unngh/obs-websocket) `v5.7.4` | JavaScript/TypeScript bindings for `obs_websocket`, for browsers and Node.js | https://www.npmjs.com/package/@unngh/obs-websocket |
 
 ## Interesting Projects
 

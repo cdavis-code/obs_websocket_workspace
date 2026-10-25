@@ -8,6 +8,27 @@ MCP server for controlling OBS Studio via AI agents — 60+ tools for scenes, st
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/cdavis-code/obs_websocket_workspace/blob/master/LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18-brightgreen)](https://nodejs.org/)
 
+## Table of Contents
+
+- [@unngh/obs-mcp](#unnghobs-mcp)
+  - [Table of Contents](#table-of-contents)
+  - [Quick Start](#quick-start)
+  - [MCP Host Configuration](#mcp-host-configuration)
+    - [Claude Desktop](#claude-desktop)
+    - [VS Code](#vs-code)
+    - [Cursor](#cursor)
+    - [Generic MCP Client](#generic-mcp-client)
+  - [Code Mode](#code-mode)
+    - [Why Code Mode?](#why-code-mode)
+  - [Features](#features)
+    - [What Can You Do?](#what-can-you-do)
+  - [Configuration](#configuration)
+  - [Requirements](#requirements)
+  - [Debugging](#debugging)
+  - [Building from Source](#building-from-source)
+  - [Related Packages](#related-packages)
+  - [License](#license)
+
 ## Quick Start
 
 ```bash
@@ -179,6 +200,15 @@ npm run build
 ```
 
 Requires Dart SDK ^3.8.0 and Node.js >= 18.
+
+## Related Packages
+
+| Package Name | Short Description | Link |
+| --- | --- | --- |
+| [**obs_cli**](https://pub.dev/packages/obs_cli) `v5.7.0+3` | Command-line interface for controlling OBS Studio via the obs-websocket protocol | https://pub.dev/packages/obs_cli |
+| [**obs_mcp**](https://pub.dev/packages/obs_mcp) `v5.7.2+1` | MCP server for controlling OBS Studio via the obs-websocket v5.x protocol | https://pub.dev/packages/obs_mcp |
+| [**obs_websocket**](https://pub.dev/packages/obs_websocket) `v5.7.0+7` | OBS WebSocket client library written in Dart (v5.x protocol) | https://pub.dev/packages/obs_websocket |
+| [**obs_websocket_js**](https://www.npmjs.com/package/@unngh/obs-websocket) `v5.7.4` | JavaScript/TypeScript bindings for `obs_websocket`, for browsers and Node.js | https://www.npmjs.com/package/@unngh/obs-websocket |
 
 ## License
 

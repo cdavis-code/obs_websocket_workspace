@@ -33,7 +33,7 @@ This workspace contains two packages, each serving a distinct purpose:
 
 | Package | Version | Description |
 |---------|---------|-------------|
-| [**obs_websocket**](packages/obs_websocket/) | 5.7.0 | Core Dart SDK for OBS WebSocket protocol v5.x |
+| [**obs_websocket**](packages/obs_websocket/) | 5.7.0+7 | Core Dart SDK for OBS WebSocket protocol v5.x |
 | [**obs_cli**](packages/obs_cli/) | 5.2.3+2 | Command-line interface for controlling OBS from terminal |
 
 ---

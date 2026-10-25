@@ -12,7 +12,44 @@ Built on the battle-tested [`obs_websocket`](https://pub.dev/packages/obs_websoc
 
 ---
 
-## Why obs_websocket_js?
+## Table of Contents
+
+- [obs\_websocket](#obs_websocket)
+  - [Table of Contents](#table-of-contents)
+  - [Why @unngh/obs-websocket?](#why-unnghobs-websocket)
+    - [Key Advantages](#key-advantages)
+  - [Quick Start](#quick-start)
+    - [Installation](#installation)
+    - [Basic Usage (Node.js / TypeScript)](#basic-usage-nodejs--typescript)
+    - [Environment Variable Setup (Node.js only)](#environment-variable-setup-nodejs-only)
+    - [Browser Usage](#browser-usage)
+    - [Choosing an Import Path](#choosing-an-import-path)
+  - [API Reference](#api-reference)
+    - [Connection Methods](#connection-methods)
+    - [Typed Namespaces](#typed-namespaces)
+    - [Event System](#event-system)
+  - [Builds](#builds)
+    - [Automatic WebSocket Selection](#automatic-websocket-selection)
+  - [Configuration Options](#configuration-options)
+    - [Connection Options](#connection-options)
+    - [Auto-Reconnection](#auto-reconnection)
+    - [Environment Variables (Node.js only)](#environment-variables-nodejs-only)
+  - [Examples](#examples)
+    - [Complete Streaming Workflow](#complete-streaming-workflow)
+    - [Scene Transition with Animation](#scene-transition-with-animation)
+  - [Caveats & Limitations](#caveats--limitations)
+  - [Building from Source](#building-from-source)
+    - [Build Outputs](#build-outputs)
+  - [Relation to the Dart Package](#relation-to-the-dart-package)
+  - [Related Packages](#related-packages)
+  - [Contributing](#contributing)
+    - [Publishing to npm](#publishing-to-npm)
+  - [License](#license)
+  - [Resources](#resources)
+
+---
+
+## Why @unngh/obs-websocket?
 
 | Feature | @unngh/obs-websocket | obs-websocket-js |
 |---------|------------------|------------------|
@@ -29,7 +66,7 @@ Built on the battle-tested [`obs_websocket`](https://pub.dev/packages/obs_websoc
 | **Bundle Size** | ~150-300 KB (gzipped) | ~50-100 KB (gzipped) |
 | **Dual Entrypoints** | ✅ Separate `node` and `browser` builds | ✅ JSON/Msgpack builds |
 | **Shared Protocol Core** | ✅ Same logic as Dart/CLI/MCP packages | Standalone implementation |
-| **Auto Reconnection** | Planned for v6 | ✅ Built-in |
+| **Auto Reconnection** | ✅ `autoReconnect` + backoff | ✅ Built-in |
 | **RPC Version Control** | ✅ Automatic negotiation | ✅ Manual `rpcVersion` param |
 
 ### Key Advantages
@@ -43,6 +80,8 @@ Built on the battle-tested [`obs_websocket`](https://pub.dev/packages/obs_websoc
 ⚙️ **Environment Variable Support** — Quick local development with `OBS_WEBSOCKET_URL` and `OBS_WEBSOCKET_PASSWORD`.
 
 🔗 **Protocol Parity** — If it exists in OBS WebSocket protocol, it works here. Backed by the comprehensive Dart SDK.
+
+🔁 **Auto-Reconnection** — `autoReconnect: true` restores the socket with exponential backoff; the instance, typed sub-APIs and event listeners survive the reconnect.
 
 ## Quick Start
 
@@ -289,7 +328,36 @@ interface ConnectOptions {
   password?: string;        // OBS WebSocket password (if required)
   timeout?: number;         // Connection timeout in seconds (default 120)
   logLevel?: 'all' | 'debug' | 'info' | 'warning' | 'error';  // Logging verbosity
+  autoReconnect?: boolean;  // Reconnect after a dropped socket (default false)
+  maxReconnectAttempts?: number;  // Consecutive failures before giving up (default 5)
+  reconnectBaseDelayMs?: number;  // First retry delay; doubles each attempt (default 200)
+  reconnectMaxDelayMs?: number;   // Backoff ceiling (default 5000)
 }
+```
+
+### Auto-Reconnection
+
+Enable `autoReconnect` and the client re-establishes the socket with exponential
+backoff (handled by the underlying `obs_websocket` Dart client, >= 5.7.0+7).
+Every transition is emitted as a `connectionStateChange` event —
+`'connected'`, `'reconnecting'`, `'disconnected'`, or `'failed'` (all attempts
+exhausted). The same `obs` instance and its typed sub-APIs stay usable across
+reconnects; subscriptions registered with `obs.on(...)` keep receiving events.
+
+```typescript
+const obs = await ObsWebSocket.connect('ws://localhost:4455', {
+  password: 'your_password',
+  autoReconnect: true,
+  maxReconnectAttempts: 10,
+  reconnectBaseDelayMs: 500,
+  reconnectMaxDelayMs: 30000,
+});
+
+obs.on('connectionStateChange', (state) => {
+  console.log('OBS connection:', state);
+});
+
+// Call `obs.disconnect()` to stop reconnecting — user-initiated closes never retry.
 ```
 
 ### Environment Variables (Node.js only)
@@ -370,7 +438,7 @@ await obs.transitions.setCurrentSceneTransitionDuration(500);
 
 4. **Node Version Support**: Tested on Node 18+. On Node 22+, native `globalThis.WebSocket` is used; on Node 18-21, the `ws` package is loaded dynamically.
 
-5. **Auto-Reconnection**: Not yet implemented (planned for v6.0.0). Handle reconnection manually in production apps.
+5. **Auto-Reconnection**: Opt-in via `autoReconnect: true`. After `maxReconnectAttempts` consecutive failures the client emits `connectionStateChange` with `'failed'` and stops retrying; re-connect manually from there.
 
 ---
 
@@ -427,6 +495,15 @@ obs_cli (CLI tool)
 **Feature parity is guaranteed** — if a request exists in the Dart package, it works here via `obs.send(name, args)`, and the typed helpers in the sub-API classes cover commonly-used requests.
 
 ---
+
+## Related Packages
+
+| Package Name | Short Description | Link |
+| --- | --- | --- |
+| [**obs_cli**](https://pub.dev/packages/obs_cli) `v5.7.0+3` | Command-line interface for controlling OBS Studio via the obs-websocket protocol | https://pub.dev/packages/obs_cli |
+| [**obs_mcp**](https://pub.dev/packages/obs_mcp) `v5.7.2+1` | MCP server for controlling OBS Studio via the obs-websocket v5.x protocol | https://pub.dev/packages/obs_mcp |
+| [**obs_mcp_js**](https://www.npmjs.com/package/@unngh/obs-mcp) `v5.7.5` | `obs_mcp` compiled to JavaScript for Node.js execution via `npx` | https://www.npmjs.com/package/@unngh/obs-mcp |
+| [**obs_websocket**](https://pub.dev/packages/obs_websocket) `v5.7.0+7` | OBS WebSocket client library written in Dart (v5.x protocol) | https://pub.dev/packages/obs_websocket |
 
 ## Contributing
 
